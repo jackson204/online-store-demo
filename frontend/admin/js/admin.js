@@ -8,7 +8,7 @@ let users = [];
 let stats = {};
 
 // API 基礎 URL（目前使用靜態資料，暫時保留供未來使用）
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'http://localhost:5223/api';
 
 // 靜態資料 - 模擬管理端資料
 const ADMIN_MOCK_DATA = {

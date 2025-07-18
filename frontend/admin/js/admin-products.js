@@ -3,14 +3,16 @@
 // 載入所有商品
 async function loadProducts() {
     if (!checkAdminPermission()) return;
-    
+
     try {
         showLoading('products-tbody');
-        
-        // 使用靜態資料
-        products = ADMIN_MOCK_DATA.products;
+
+        // 改為呼叫後端 API
+        const response = await fetch(`${API_BASE}/admin/products`);
+        if (!response.ok) throw new Error('API 錯誤');
+        products = await response.json();
         displayProducts();
-        
+
         // 記錄操作日誌
         logAdminAction('view_products', { count: products.length });
     } catch (error) {
