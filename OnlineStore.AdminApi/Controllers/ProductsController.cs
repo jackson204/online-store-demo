@@ -25,7 +25,9 @@ public class ProductsController : ControllerBase
     /// 取得所有商品清單
     /// </summary>
     /// <returns>商品資料集合</returns>
+    /// <response code="200">成功取得商品清單</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<ProductDto>> GetProducts()
     {
         // 回傳靜態商品資料
