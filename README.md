@@ -1,53 +1,51 @@
-# 線上商店系統 (Online Store Demo)
+# 線上商店系統
 
-完整的線上商店系統，包含客戶端和管理端功能，使用 HTML、CSS、JavaScript 和 Node.js 建構。
+完整的線上商店系統，包含前端與後端 API。
 
-## 功能特色
+## 專案結構
 
-### 客戶端功能
-- ✅ 使用者註冊/登入/登出
-- ✅ 商品瀏覽與搜尋
-- ✅ 分類篩選
-- ✅ 購物車功能
-- ✅ 訂單管理
-- ✅ 結帳流程
-- ✅ 訂單歷史查看
-- ✅ 響應式設計
-
-### 管理端功能
-- ✅ 管理員認證系統
-- ✅ 儀表板統計
-- ✅ 商品管理 (新增/編輯/刪除)
-- ✅ 訂單管理
-- ✅ 使用者管理
-- ✅ 報表功能
-- ✅ 系統設定
-
-## 技術架構
-
-### 前端
-- HTML5
-- CSS3 (響應式設計)
-- 原生 JavaScript (ES6+)
-- Font Awesome 圖示
-
-### 後端
-- Node.js
-- Express.js
-- JWT 認證
-- bcryptjs 密碼加密
-- 內存資料庫 (可擴展為真實資料庫)
+```
+online-store-demo/
+├── frontend/                 # 前端專案 (HTML/CSS/JavaScript + Node.js 開發伺服器)
+│   ├── client/               # 客戶端介面
+│   ├── admin/                # 管理端介面
+│   ├── images/               # 圖片資源
+│   ├── styles/               # 樣式檔案
+│   ├── js/                   # JavaScript 檔案
+│   ├── index.html            # 主頁面
+│   ├── package.json          # 前端相依套件
+│   ├── server.js             # Node.js 開發伺服器
+│   └── start.bat             # 前端啟動腳本
+├── OnlineStore.AdminApi/     # 後端 API (.NET Core 8 Web API)
+│   ├── Controllers/          # API 控制器
+│   ├── Dockerfile            # Docker 容器化設定
+│   ├── Program.cs            # 主程式
+│   └── *.csproj              # 專案檔案
+├── .gitignore                # Git 忽略檔案
+└── README.md                 # 專案說明文件
+```
 
 ## 快速開始
 
-### 1. 環境需求
-- Node.js (v14 或更新版本)
-- npm (Node.js 包管理器)
+### 前端開發
 
-### 2. 安裝與啟動
-
-#### 方法一：使用啟動腳本 (Windows)
 ```bash
+cd frontend
+npm install
+npm start
+```
+
+前端將在 http://localhost:3000 啟動
+
+### 後端開發
+
+```bash
+cd OnlineStore.AdminApi
+dotnet restore
+dotnet run
+```
+
+後端 API 將在 http://localhost:5000 啟動
 # 執行 start.bat 檔案
 start.bat
 ```
