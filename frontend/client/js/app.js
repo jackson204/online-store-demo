@@ -328,6 +328,10 @@ function displayProducts(productList, containerId) {
                         庫存: ${product.stock}
                     </div>
                     <div class="product-actions">
+                        <button class="btn-secondary" onclick="showProductDetail('${product.id}')">
+                            <i class="fas fa-info-circle"></i>
+                            查看詳情
+                        </button>
                         <button class="btn-primary" onclick="addToCartSimple('${product.id}')" ${product.stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-shopping-cart"></i>
                             ${product.stock === 0 ? '缺貨' : '加入購物車'}
@@ -583,3 +587,5 @@ function addToCartSimple(productId) {
     
     console.log(`商品 ${product.name} 已加入購物車`);
 }
+
+

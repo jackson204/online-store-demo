@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品詳情測試</title>
+    <link rel="stylesheet" href="client/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>商品詳情測試</h1>
+        <div class="test-buttons">
+            <button class="btn-primary" onclick="showProductDetail(\"1\")">查看商品詳情</button>
+            <button class="btn-secondary" onclick="testLogin()">測試登入</button>
+        </div>
+    </div>
+
+    <script>
+        // 模擬資料
+        let products = [
+            {
+                id: \"1\",
+                name: \"經典白色T恤\",
+                description: \"100%純棉材質，舒適透氣，適合日常穿著。這款T恤採用優質棉料製作，版型設計簡約大方，是您衣櫥中不可或缺的基本款。\",
+                price: 590,
+                image: \"https://via.placeholder.com/400x400/f0f0f0/333?text=白色T恤\",
+                category: \"clothing\",
+                stock: 50,
+                featured: true,
+                rating: 4.5,
+                reviews: 128,
+                createdAt: \"2024-01-15T10:30:00Z\"
+            }
+        ];
+
+        // 模擬登入使用者
+        function testLogin() {
+            localStorage.setItem(\"authToken\", \"test-token\");
+            localStorage.setItem(\"userData\", JSON.stringify({
+                id: \"1\",
+                username: \"測試使用者\",
+                email: \"test@example.com\"
+            }));
+            showNotification(\"測試登入成功\", \"success\");
+        }
+
+        // 檢查登入狀態
+        function checkLogin() {
+            return localStorage.getItem(\"authToken\") !== null;
+        }
+
+        // 獲取當前使用者
+        function getCurrentUser() {
+            const userData = localStorage.getItem(\"userData\");
+            return userData ? JSON.parse(userData) : null;
+        }
+
+        // 顯示通知
+        function showNotification(message, type = \"info\") {
+            const notification = document.createElement(\"div\");
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            // 添加樣式
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem;
+                border-radius: 4px;
+                color: white;
+                z-index: 10000;
+                font-weight: 500;
+                max-width: 300px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            `;
+            
+            switch(type) {
+                case \"success\":
+                    notification.style.backgroundColor = \"#27ae60\";
+                    break;
+                case \"error\":
+                    notification.style.backgroundColor = \"#e74c3c\";
+                    break;
+                case \"warning\":
+                    notification.style.backgroundColor = \"#f39c12\";
+                    break;
+                default:
+                    notification.style.backgroundColor = \"#3498db\";
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString(\"zh-TW\", {
+                year: \"numeric\",
+                month: \"2-digit\",
+                day: \"2-digit\",
+                hour: \"2-digit\",
+                minute: \"2-digit\"
+            });
+        }
+    </script>
+    <script src="client/js/products.js"></script>
+</body>
+</html>
