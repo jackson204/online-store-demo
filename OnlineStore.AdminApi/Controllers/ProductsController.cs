@@ -27,6 +27,7 @@ public class ProductsController : ControllerBase
     /// <returns>商品資料集合</returns>
     /// <response code="200">成功取得商品清單</response>
     [HttpGet]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<ProductDto>> GetProducts()
     {
