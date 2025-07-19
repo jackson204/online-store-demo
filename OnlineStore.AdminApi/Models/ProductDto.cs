@@ -29,6 +29,15 @@ public class ProductDto
     /// <summary>商品圖片網址</summary>
     public string Image { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 是否為精選商品
+    /// </summary>
+    public bool IsFeatured
+    {
+        get => Featured;
+        set => Featured = value;
+    }
+
     //TODO: 以下屬性可根據實際需求決定是否需要
     /// <summary>商品評分</summary>
     // public double Rating { get; set; }

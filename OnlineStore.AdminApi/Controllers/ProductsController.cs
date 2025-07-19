@@ -1,8 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStore.AdminApi.Models;
-using OnlineStore.AdminApi.Data;
-using Microsoft.EntityFrameworkCore;
 using OnlineStore.AdminApi.Features.Products;
 
 namespace OnlineStore.AdminApi.Controllers;
@@ -14,11 +12,14 @@ namespace OnlineStore.AdminApi.Controllers;
 [Route("api/admin/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly ApplicationDbContext _db;
     private readonly IMediator _mediator;
-    public ProductsController(ApplicationDbContext db, IMediator mediator)
+
+    /// <summary>
+    /// 建構子，注入 MediatR
+    /// </summary>
+    /// <param name="mediator">MediatR 實例</param>
+    public ProductsController(IMediator mediator)
     {
-        _db = db;
         _mediator = mediator;
     }
 
@@ -49,43 +50,12 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ProductDto>>> CreateProduct([FromBody] ProductDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name) || dto.Price < 0 || dto.Stock < 0)
+        var result = await _mediator.Send(new CreateProductCommand(dto));
+        if (!result.Success)
         {
-            return BadRequest("商品名稱、價格與庫存不可為空或負值");
+            return BadRequest(result.ErrorMessage);
         }
-        var now = DateTime.UtcNow;
-        var product = new Product
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            Category = dto.Category,
-            Price = dto.Price,
-            Stock = dto.Stock,
-            Featured = dto.Featured,
-            Image = dto.Image,
-            CreatedAt = now,
-            UpdatedAt = null
-        };
-        _db.Products.Add(product);
-        await _db.SaveChangesAsync();
-
-        // 取得所有商品清單
-        var products = await _db.Products.AsNoTracking().ToListAsync();
-        var dtos = products.Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Category = p.Category,
-            Price = p.Price,
-            Stock = p.Stock,
-            Featured = p.Featured,
-            Image = p.Image,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
-        }).ToList();
-
-        return Ok(dtos);
+        return Ok(result.Products);
     }
 
     /// <summary>
@@ -104,46 +74,14 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProductDto>> PutProduct(int id, [FromBody] ProductDto dto)
     {
-        if (id != dto.Id)
+        var result = await _mediator.Send(new UpdateProductCommand(id, dto));
+        if (!result.Success)
         {
-            return BadRequest("路由 id 與資料 id 不符");
+            if (result.NotFound)
+                return NotFound();
+            return BadRequest(result.ErrorMessage);
         }
-        if (string.IsNullOrWhiteSpace(dto.Name) || dto.Price < 0 || dto.Stock < 0)
-        {
-            return BadRequest("商品名稱、價格與庫存不可為空或負值");
-        }
-        var product = await _db.Products.FindAsync(id);
-        if (product == null)
-        {
-            return NotFound();
-        }
-
-        // 更新欄位
-        product.Name = dto.Name;
-        product.Description = dto.Description;
-        product.Category = dto.Category;
-        product.Price = dto.Price;
-        product.Stock = dto.Stock;
-        product.Featured = dto.Featured;
-        product.Image = dto.Image;
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
-        // 回傳更新後的 DTO
-        var result = new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Category = product.Category,
-            Price = product.Price,
-            Stock = product.Stock,
-            Featured = product.Featured,
-            Image = product.Image,
-            CreatedAt = product.CreatedAt,
-            UpdatedAt = product.UpdatedAt
-        };
-        return Ok(result);
+        return Ok(result.Product);
     }
 
     /// <summary>
@@ -159,30 +97,12 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ProductDto>>> DeleteProduct(int id)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product == null)
+        var result = await _mediator.Send(new DeleteProductCommand(id));
+        if (!result.Success)
         {
             return NotFound();
         }
-        _db.Products.Remove(product);
-        await _db.SaveChangesAsync();
-
-        // 刪除後回傳所有商品清單
-        var products = await _db.Products.AsNoTracking().ToListAsync();
-        var dtos = products.Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Category = p.Category,
-            Price = p.Price,
-            Stock = p.Stock,
-            Featured = p.Featured,
-            Image = p.Image,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
-        }).ToList();
-        return Ok(dtos);
+        return Ok(result.Products);
     }
 
     /// <summary>
@@ -198,29 +118,11 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProductDto>> ToggleFeatured(int id)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product is null)
+        var result = await _mediator.Send(new ToggleFeaturedCommand(id));
+        if (!result.Success)
         {
             return NotFound();
         }
-
-        product.Featured = !product.Featured;
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
-        var dto = new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Category = product.Category,
-            Price = product.Price,
-            Stock = product.Stock,
-            Featured = product.Featured,
-            Image = product.Image,
-            CreatedAt = product.CreatedAt,
-            UpdatedAt = product.UpdatedAt
-        };
-        return Ok(dto);
+        return Ok(result.Product);
     }
 }

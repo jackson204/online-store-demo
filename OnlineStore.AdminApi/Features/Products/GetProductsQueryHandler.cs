@@ -5,18 +5,11 @@ using OnlineStore.AdminApi.Models;
 
 namespace OnlineStore.AdminApi.Features.Products;
 
-public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, IEnumerable<ProductDto>>
+public class GetProductsQueryHandler(ApplicationDbContext db) : IRequestHandler<GetProductsQuery, IEnumerable<ProductDto>>
 {
-    private readonly ApplicationDbContext _db;
-
-    public GetProductsQueryHandler(ApplicationDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        var products = await _db.Products.AsNoTracking().ToListAsync(cancellationToken);
+        var products = await db.Products.AsNoTracking().ToListAsync(cancellationToken);
         return products.Select(p => new ProductDto
         {
             Id = p.Id,

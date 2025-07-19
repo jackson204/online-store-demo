@@ -12,4 +12,10 @@ public class Product
     public string Image { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    public bool IsFeatured
+    {
+        get => Featured;
+        set => Featured = value;
+    }
 }
