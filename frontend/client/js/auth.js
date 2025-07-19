@@ -126,6 +126,19 @@ function checkLogin() {
 }
 
 // 處理 API 錯誤
+async function handleApiErrorResponse(response, defaultMessage = '操作失敗') {
+    let errorMsg = defaultMessage;
+    try {
+        const data = await response.json();
+        if (data && data.error) {
+            errorMsg = data.error + (data.detail ? `：${data.detail}` : '');
+        }
+    } catch {
+        // 無法解析 JSON，維持預設訊息
+    }
+    showNotification(errorMsg, 'error');
+}
+
 function handleApiError(error, defaultMessage = '操作失敗') {
     console.error('API 錯誤:', error);
     
@@ -136,6 +149,8 @@ function handleApiError(error, defaultMessage = '操作失敗') {
         showLoginModal();
     } else if (error.status === 403) {
         showNotification('沒有權限執行此操作', 'error');
+    } else if (error.response) {
+        handleApiErrorResponse(error.response, defaultMessage);
     } else {
         showNotification(defaultMessage, 'error');
     }

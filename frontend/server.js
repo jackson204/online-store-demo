@@ -361,6 +361,12 @@ app.get('/api/admin/stats', authenticateAdmin, (req, res) => {
     res.json(stats);
 });
 
+// 統一錯誤處理中介軟體
+app.use((err, req, res, next) => {
+    console.error('API 例外:', err);
+    res.status(500).json({ error: '伺服器內部錯誤', detail: err.message });
+});
+
 // 啟動伺服器
 app.listen(PORT, () => {
     console.log(`伺服器執行在 http://localhost:${PORT}`);
