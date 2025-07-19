@@ -12,20 +12,41 @@
 online-store-demo/
 ├── frontend/                 # 前端專案 (HTML/CSS/JavaScript + Node.js)
 │   ├── client/               # 客戶端介面
+│   │   ├── index.html        # 客戶端首頁
+│   │   ├── css/              # 客戶端樣式
+│   │   └── js/               # 客戶端 JS
 │   ├── admin/                # 管理端介面
+│   │   ├── index.html        # 管理端首頁
+│   │   ├── css/              # 管理端樣式
+│   │   └── js/               # 管理端 JS
 │   ├── images/               # 圖片資源
-│   ├── styles/               # 樣式檔案
+│   ├── styles/               # 共用樣式
 │   ├── js/                   # 共用 JavaScript 檔案
 │   ├── index.html            # 首頁
+│   ├── admin.html            # 管理端入口
+│   ├── product-detail-test.html # 商品詳情測試頁
+│   ├── system-test.html      # 系統測試頁
+│   ├── test.html             # 測試頁
 │   ├── package.json          # 前端相依套件
+│   ├── package-lock.json     # 前端鎖定檔
 │   ├── server.js             # Node.js 開發伺服器
-│   └── start.bat             # 前端啟動腳本
+│   ├── start-frontend.bat    # 前端靜態伺服器啟動腳本
+│   └── start.bat             # Node.js 伺服器啟動腳本
 ├── OnlineStore.AdminApi/     # 後端 API (.NET 8 Web API)
 │   ├── Controllers/          # API 控制器
 │   ├── Models/               # 資料模型
+│   ├── Data/                 # EF Core DbContext
+│   ├── Features/             # CQRS/功能模組
+│   ├── Migrations/           # EF Core 資料庫遷移
+│   ├── Properties/           # 專案屬性
 │   ├── Dockerfile            # Docker 容器化設定
 │   ├── Program.cs            # 入口程式
+│   ├── appsettings.json      # 設定檔
+│   ├── appsettings.Development.json # 開發用設定
 │   └── *.csproj              # 專案檔案
+├── OnlineStore.AdminApi.Tests/ # 後端單元測試專案
+│   ├── Features/             # 測試功能模組
+│   └── *.csproj              # 測試專案檔案
 ├── README.md                 # 技術說明文件
 └── ...
 ```
@@ -108,25 +129,6 @@ public class ProductDto {
     public int Price { get; set; }
     public int Stock { get; set; }
     public bool Featured { get; set; }
-    public string Image { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-}
-```
-
----
-
-## 部署與測試
-
-### 本地開發
-- 前端：`npm run dev` 或 `npm start`
-- 後端：`dotnet run`
-
-### 容器化部署
-- 參考 `OnlineStore.AdminApi/Dockerfile`，可用 Docker 建立後端映像
-- 建議前後端分開部署，前端可靜態主機/Node.js，後端可用 Azure/AWS/Heroku 等
-
-### 圖片資源
 - 請將商品圖片放於 `frontend/images/`，或使用線上圖片 URL
 
 ---
@@ -142,37 +144,27 @@ public class ProductDto {
 
 ## 版本歷史
 - v1.0.0 - 初始版本，完整客戶端/管理端功能、響應式設計、JWT 驗證
+- v1.1.0 - 新增後端 Products 查詢單元測試，提升 API 測試覆蓋率，優化 README 與容器化部署說明
 
 ---
 
 ## 今日 TODO LIST（2025/07/19）
 
-### 第一階段：基礎架構完成
-- [x] 完成前端 client 主要功能
-- [x] 完成前端 admin 主要功能
+### 已完成
+- [x] 完成前端 client 主要功能與管理端主要功能
 - [x] 完成後端 CORS 設定，前後端可正確通訊
+- [x] 使用 Docker 啟動 MSSQL 容器並完成資料庫連線
+- [x] 完成 Entity Framework Core 整合與資料表遷移
+- [x] ProductsController 已改為資料庫查詢
+- [x] 新增 GetProductsQueryHandler 單元測試，提升查詢功能測試覆蓋率
 
-> 本日 client 與 admin 前端介面皆由 AI 輔助產生，並已完成主要功能與 CORS 串接測試。
+### 今日重點
+- [ ] 強化後端 API 單元測試覆蓋率（持續新增 Products/Orders 相關測試）
+- [ ] 檢查資料庫 Migration 與模型同步狀態
+- [ ] 優化 Dockerfile 與 .dockerignore，確保映像檔最佳化
+- [ ] 撰寫/補充 README 測試與部署章節
 
-### 第二階段：資料庫整合學習
-- [x] 使用 Docker 啟動 MSSQL 容器，設定帳號密碼與資料庫名稱
-- [x] 在 OnlineStore.AdminApi 專案安裝 Entity Framework Core 及 SQL Server Provider 相依套件
-- [x] 設定 appsettings.json 連線字串，指向 Docker MSSQL 容器
-- [x] 修改 ApplicationDbContext，加入 Products 資料表的 DbSet
-- [x] 建立 Product 資料表的 Entity Model
-- [x] 建立並套用資料庫遷移（Migration），讓資料表在 MSSQL 中建立
-- [x] 修改 ProductsController，改為透過 DbContext 取得資料
-
-**學習重點：**
-- 理解為何使用多階段方式進行資料庫整合，避免一次性變更造成的複雜度
-- 學會 Entity Framework Core 的基本概念：DbContext、Entity Model、Migration
-- 理解 DTO 與 Entity 的分離設計原則，維持分層架構的清晰度
-- 掌握 Docker 容器化資料庫的基本操作與連線字串設定
-
-**架構師觀點：**
-- 將靜態資料改為資料庫查詢是邁向生產環境的重要步驟
-- Migration 機制確保資料庫結構的版本控制與團隊協作
-- 使用 Docker 容器可確保開發環境的一致性，減少「在我的機器上可以運行」問題
+> 近期已完成主要架構與資料庫整合，今日聚焦於測試覆蓋率提升與容器化最佳實踐。
 
 ---
 
