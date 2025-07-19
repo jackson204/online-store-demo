@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OnlineStore.AdminApi.Data;
 using OnlineStore.AdminApi.Models;
 
-namespace OnlineStore.AdminApi.Features.Products;
+namespace OnlineStore.AdminApi.Features.Products.Queries;
 
 public class GetProductsQueryHandler(ApplicationDbContext db) : IRequestHandler<GetProductsQuery, IEnumerable<ProductDto>>
 {

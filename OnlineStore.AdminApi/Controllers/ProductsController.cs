@@ -1,7 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStore.AdminApi.Models;
-using OnlineStore.AdminApi.Features.Products;
+using OnlineStore.AdminApi.Features.Products.Commands;
+using OnlineStore.AdminApi.Features.Products.Queries;
 
 namespace OnlineStore.AdminApi.Controllers;
 

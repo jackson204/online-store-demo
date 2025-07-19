@@ -2,7 +2,7 @@ using MediatR;
 using OnlineStore.AdminApi.Data;
 using OnlineStore.AdminApi.Models;
 
-namespace OnlineStore.AdminApi.Features.Products;
+namespace OnlineStore.AdminApi.Features.Products.Commands;
 
 /// <summary>
 /// 切換商品精選狀態的 Command Handler。

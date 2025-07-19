@@ -3,7 +3,7 @@ using OnlineStore.AdminApi.Data;
 using OnlineStore.AdminApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace OnlineStore.AdminApi.Features.Products;
+namespace OnlineStore.AdminApi.Features.Products.Commands;
 
 /// <summary>
 /// 建立商品的 Command Handler。

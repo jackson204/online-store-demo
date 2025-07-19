@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace OnlineStore.AdminApi.Features.Products;
+namespace OnlineStore.AdminApi.Features.Products.Commands;
 
 /// <summary>
 /// 刪除商品的 Command。

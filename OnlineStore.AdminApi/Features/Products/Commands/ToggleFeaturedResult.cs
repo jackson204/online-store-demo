@@ -1,4 +1,4 @@
-namespace OnlineStore.AdminApi.Features.Products;
+namespace OnlineStore.AdminApi.Features.Products.Commands;
 
 /// <summary>
 /// 切換精選狀態結果。
