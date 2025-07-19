@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineStore.AdminApi.Data;
 using OnlineStore.AdminApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace OnlineStore.AdminApi.Features.Products.Commands;
 
