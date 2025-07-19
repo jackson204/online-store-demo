@@ -46,7 +46,7 @@ public class ProductsController : ControllerBase
         return Ok(dtos);
     }
 
-        /// <summary>
+    /// <summary>
     /// 新增商品，並回傳所有商品清單
     /// </summary>
     /// <param name="dto">商品資料</param>
@@ -78,7 +78,7 @@ public class ProductsController : ControllerBase
         };
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
-    
+
         // 取得所有商品清單
         var products = await _db.Products.AsNoTracking().ToListAsync();
         var dtos = products.Select(p => new ProductDto
@@ -94,7 +94,7 @@ public class ProductsController : ControllerBase
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt
         }).ToList();
-    
+
         return Ok(dtos);
     }
 
@@ -127,6 +127,7 @@ public class ProductsController : ControllerBase
         {
             return NotFound();
         }
+
         // 更新欄位
         product.Name = dto.Name;
         product.Description = dto.Description;
@@ -137,6 +138,7 @@ public class ProductsController : ControllerBase
         product.Image = dto.Image;
         product.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+
         // 回傳更新後的 DTO
         var result = new ProductDto
         {
@@ -152,5 +154,44 @@ public class ProductsController : ControllerBase
             UpdatedAt = product.UpdatedAt
         };
         return Ok(result);
+    }
+
+    /// <summary>
+    /// 刪除指定商品，並回傳所有商品清單
+    /// </summary>
+    /// <param name="id">商品 ID</param>
+    /// <returns>所有商品資料集合</returns>
+    /// <response code="200">成功刪除商品並取得商品清單</response>
+    /// <response code="404">找不到指定的商品</response>
+    [HttpDelete("{id}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<ProductDto>>> DeleteProduct(int id)
+    {
+        var product = await _db.Products.FindAsync(id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+        _db.Products.Remove(product);
+        await _db.SaveChangesAsync();
+
+        // 刪除後回傳所有商品清單
+        var products = await _db.Products.AsNoTracking().ToListAsync();
+        var dtos = products.Select(p => new ProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Description = p.Description,
+            Category = p.Category,
+            Price = p.Price,
+            Stock = p.Stock,
+            Featured = p.Featured,
+            Image = p.Image,
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt
+        }).ToList();
+        return Ok(dtos);
     }
 }

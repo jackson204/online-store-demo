@@ -223,34 +223,33 @@ async function handleEditProduct(event) {
 // 刪除商品
 async function deleteProduct(productId) {
     if (!checkAdminPermission()) return;
-    
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => String(p.id) === String(productId));
     if (!product) {
         showNotification('商品不存在', 'error');
         return;
     }
-    
     if (!confirm(`確定要刪除商品「${product.name}」嗎？此操作無法復原。`)) {
         return;
     }
-    
     try {
-        // 從產品列表中移除 (只需要操作一次，因為 products 已經指向 ADMIN_MOCK_DATA.products)
-        const index = products.findIndex(p => p.id === productId);
-        if (index !== -1) {
-            products.splice(index, 1);
+        const response = await fetch(`${API_BASE}/admin/products/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                ...(typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {}),
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            showNotification(error || '刪除商品失敗', 'error');
+            return;
         }
-        
-        // 重新顯示商品列表
+        // 後端回傳最新商品清單
+        products = await response.json();
         displayProducts();
-        
-        // 更新儀表板統計
-        updateStatsUI();
-        
+        updateStatsUI && updateStatsUI();
         showNotification('商品刪除成功', 'success');
-        
         console.log('商品刪除成功:', product.name);
-        
     } catch (error) {
         console.error('刪除商品失敗:', error);
         showNotification('刪除商品失敗', 'error');
