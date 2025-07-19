@@ -45,5 +45,29 @@ namespace OnlineStore.AdminApi.Tests.Features.Products.Queries
             }
         }
 
+        [Fact]
+        public async Task Handle_ReturnsEmptyList_WhenNoProductsExist()
+        {
+            // Arrange
+            var options = CreateInMemoryOptions();
+            await using (var context = new ApplicationDbContext(options))
+            {
+                // 不新增任何產品
+                await context.SaveChangesAsync();
+            }
+
+            await using (var context = new ApplicationDbContext(options))
+            {
+                var target = new GetProductsQueryHandler(context);
+                var query = new GetProductsQuery();
+
+                // Act
+                var result = await target.Handle(query, CancellationToken.None);
+
+                // Assert
+                result.Should().NotBeNull();
+                result.Should().BeEmpty();
+            }
+        }
     }
 }
