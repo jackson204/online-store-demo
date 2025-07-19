@@ -108,9 +108,9 @@ function showAddProductModal() {
 // 處理新增商品
 async function handleAddProduct(event) {
     event.preventDefault();
-    
+
     if (!checkAdminPermission()) return;
-    
+
     const formData = {
         name: document.getElementById('product-name').value,
         description: document.getElementById('product-description').value,
@@ -120,46 +120,35 @@ async function handleAddProduct(event) {
         image: document.getElementById('product-image').value,
         featured: document.getElementById('product-featured').checked
     };
-    
+
     // 表單驗證
     if (!validateProductForm(formData)) {
         return;
     }
-    
+
     try {
-        // 使用靜態資料模擬新增商品
-        const newProduct = {
-            id: Date.now().toString(), // 使用時間戳作為簡單的 ID
-            ...formData,
-            rating: 0,
-            reviews: 0,
-            createdAt: new Date().toISOString()
-        };
-        
-        // 添加預設圖片如果沒有提供
-        if (!newProduct.image) {
-            newProduct.image = 'https://via.placeholder.com/300x300/f0f0f0/333?text=新商品';
+        const response = await fetch(`${API_BASE}/admin/products`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {})
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            showNotification(error || '新增商品失敗', 'error');
+            return;
         }
-        
-        // 更新產品列表 (只需要更新一次，因為 products 已經指向 ADMIN_MOCK_DATA.products)
-        products.push(newProduct);
-        
-        // 重新顯示商品列表
-        displayProducts();
-        
-        // 更新儀表板統計
-        updateStatsUI();
-        
-        // 關閉模態框
+
+        // 新增成功後重新載入商品
+        await loadProducts();
+
+        // 關閉模態框與重設表單
         closeModal('add-product-modal');
-        
-        // 清空表單
         document.getElementById('add-product-form').reset();
-        
         showNotification('商品新增成功', 'success');
-        
-        console.log('商品新增成功:', newProduct);
-        
     } catch (error) {
         console.error('新增商品失敗:', error);
         showNotification('新增商品失敗', 'error');
