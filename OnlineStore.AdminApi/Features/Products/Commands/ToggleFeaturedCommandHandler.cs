@@ -24,7 +24,12 @@ public sealed class ToggleFeaturedCommandHandler(ApplicationDbContext db) : IReq
             Name = entity.Name,
             Description = entity.Description,
             Price = entity.Price,
-            Featured = entity.Featured
+            Featured = entity.Featured,
+            Category = entity.Category,
+            Stock = entity.Stock,
+            Image = entity.Image,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt
         };
         return new ToggleFeaturedResult { Success = true, Product = dto };
     }
