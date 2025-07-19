@@ -147,11 +147,32 @@ public class ProductDto {
 
 ## 今日 TODO LIST（2025/07/19）
 
+### 第一階段：基礎架構完成
 - [x] 完成前端 client 主要功能
 - [x] 完成前端 admin 主要功能
 - [x] 完成後端 CORS 設定，前後端可正確通訊
 
 > 本日 client 與 admin 前端介面皆由 AI 輔助產生，並已完成主要功能與 CORS 串接測試。
+
+### 第二階段：資料庫整合學習
+- [x] 使用 Docker 啟動 MSSQL 容器，設定帳號密碼與資料庫名稱
+- [x] 在 OnlineStore.AdminApi 專案安裝 Entity Framework Core 及 SQL Server Provider 相依套件
+- [x] 設定 appsettings.json 連線字串，指向 Docker MSSQL 容器
+- [x] 修改 ApplicationDbContext，加入 Products 資料表的 DbSet
+- [x] 建立 Product 資料表的 Entity Model
+- [x] 建立並套用資料庫遷移（Migration），讓資料表在 MSSQL 中建立
+- [x] 修改 ProductsController，改為透過 DbContext 取得資料
+
+**學習重點：**
+- 理解為何使用多階段方式進行資料庫整合，避免一次性變更造成的複雜度
+- 學會 Entity Framework Core 的基本概念：DbContext、Entity Model、Migration
+- 理解 DTO 與 Entity 的分離設計原則，維持分層架構的清晰度
+- 掌握 Docker 容器化資料庫的基本操作與連線字串設定
+
+**架構師觀點：**
+- 將靜態資料改為資料庫查詢是邁向生產環境的重要步驟
+- Migration 機制確保資料庫結構的版本控制與團隊協作
+- 使用 Docker 容器可確保開發環境的一致性，減少「在我的機器上可以運行」問題
 
 ---
 
