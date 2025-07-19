@@ -27,7 +27,7 @@ public class GetProductsQueryHandlerTests
         await GivenProductsExist();
 
         // Act
-        var result = await ActGetProducts();
+        var result = await WhenQueryingProducts();
 
         // Assert
         result.Should().NotBeNull();
@@ -39,14 +39,28 @@ public class GetProductsQueryHandlerTests
     public async Task Handle_ReturnsEmptyList_WhenNoProductsExist()
     {
         // Act
-        var result = await ActGetProducts();
+        var result = await WhenQueryingProducts();
 
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEmpty();
     }
 
-    private Task<IEnumerable<ProductDto>> ActGetProducts()
+    [Fact]
+    public async Task Handle_ReturnsProducts_WithSpecialCharacters()
+    {
+        // Arrange
+        await GivenProductsWithSpecialCharactersExist();
+
+        // Act
+        var result = await WhenQueryingProducts();
+
+        // Assert
+        result.Should().Contain(x => x.Name == "🦄 彩虹獨角獸" && x.Description.Contains("emoji"));
+        result.Should().Contain(x => x.Name == "測試#商品!@%" && x.Description.Contains("特殊符號"));
+    }
+
+    private Task<IEnumerable<ProductDto>> WhenQueryingProducts()
     {
         return _target.Handle(new GetProductsQuery(), CancellationToken.None);
     }
@@ -62,6 +76,23 @@ public class GetProductsQueryHandlerTests
             new Product
             {
                 Id = 2, Name = "B", Description = "DescB", Category = "Cat2", Price = 200, Stock = 20, Featured = false, Image = "img2",
+                CreatedAt = DateTime.UtcNow
+            }
+        );
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task GivenProductsWithSpecialCharactersExist()
+    {
+        _context.Products.AddRange(
+            new Product
+            {
+                Id = 101, Name = "🦄 彩虹獨角獸", Description = "描述含 emoji 😃", Category = "特別", Price = 999, Stock = 1, Featured = true, Image = "img-emoji",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                Id = 102, Name = "測試#商品!@%", Description = "特殊符號!@#$%^&*()_+", Category = "符號", Price = 123, Stock = 2, Featured = false, Image = "img-symbol",
                 CreatedAt = DateTime.UtcNow
             }
         );
