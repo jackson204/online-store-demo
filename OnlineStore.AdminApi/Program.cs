@@ -1,6 +1,8 @@
 using OnlineStore.AdminApi.Data;
 using Microsoft.EntityFrameworkCore;
-using MediatR; 
+using MediatR;
+using OnlineStore.AdminApi.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -33,6 +35,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// 註冊全域例外處理中介層（要放在最前面，越早越好）
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
