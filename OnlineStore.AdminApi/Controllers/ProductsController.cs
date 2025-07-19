@@ -1,7 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineStore.AdminApi.Models;
 using OnlineStore.AdminApi.Data;
 using Microsoft.EntityFrameworkCore;
+using OnlineStore.AdminApi.Features.Products;
 
 namespace OnlineStore.AdminApi.Controllers;
 
@@ -13,10 +15,11 @@ namespace OnlineStore.AdminApi.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-
-    public ProductsController(ApplicationDbContext db)
+    private readonly IMediator _mediator;
+    public ProductsController(ApplicationDbContext db, IMediator mediator)
     {
         _db = db;
+        _mediator = mediator;
     }
 
     /// <summary>
@@ -29,20 +32,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
     {
-        var products = await _db.Products.AsNoTracking().ToListAsync();
-        var dtos = products.Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Category = p.Category,
-            Price = p.Price,
-            Stock = p.Stock,
-            Featured = p.Featured,
-            Image = p.Image,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
-        }).ToList();
+        var dtos = await _mediator.Send(new GetProductsQuery());
         return Ok(dtos);
     }
 

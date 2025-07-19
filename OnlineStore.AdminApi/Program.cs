@@ -1,6 +1,6 @@
 using OnlineStore.AdminApi.Data;
 using Microsoft.EntityFrameworkCore;
-
+using MediatR; 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,6 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+// 註冊 MediatR，讓系統自動找到所有 Handler
+builder.Services.AddMediatR(typeof(Program));
+
 
 // 註冊 CORS 服務
 builder.Services.AddCors(options =>
