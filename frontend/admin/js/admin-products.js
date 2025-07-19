@@ -158,13 +158,12 @@ async function handleAddProduct(event) {
 // 編輯商品
 function editProduct(productId) {
     if (!checkAdminPermission()) return;
-    
-    const product = products.find(p => p.id === productId);
+    const idNum = Number(productId);
+    const product = products.find(p => Number(p.id) === idNum);
     if (!product) {
         showNotification('商品不存在', 'error');
         return;
     }
-    
     // 填充編輯表單
     document.getElementById('edit-product-id').value = product.id;
     document.getElementById('edit-product-name').value = product.name;
@@ -174,18 +173,16 @@ function editProduct(productId) {
     document.getElementById('edit-product-stock').value = product.stock;
     document.getElementById('edit-product-image').value = product.image || '';
     document.getElementById('edit-product-featured').checked = product.featured;
-    
     showModal('edit-product-modal');
 }
 
 // 處理編輯商品
 async function handleEditProduct(event) {
     event.preventDefault();
-    
     if (!checkAdminPermission()) return;
-    
     const productId = document.getElementById('edit-product-id').value;
     const formData = {
+        id: parseInt(productId),
         name: document.getElementById('edit-product-name').value,
         description: document.getElementById('edit-product-description').value,
         price: parseFloat(document.getElementById('edit-product-price').value),
@@ -194,48 +191,29 @@ async function handleEditProduct(event) {
         image: document.getElementById('edit-product-image').value,
         featured: document.getElementById('edit-product-featured').checked
     };
-    
     // 表單驗證
     if (!validateProductForm(formData)) {
         return;
     }
-    
     try {
-        // 使用靜態資料模擬編輯商品
-        const index = products.findIndex(p => p.id === productId);
-        if (index === -1) {
-            showNotification('商品不存在', 'error');
+        const response = await fetch(`${API_BASE}/admin/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {})
+            },
+            body: JSON.stringify(formData)
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            showNotification(error || '商品更新失敗', 'error');
             return;
         }
-        
-        // 保留原有的 ID 和其他資訊
-        const updatedProduct = {
-            ...products[index],
-            ...formData,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // 添加預設圖片如果沒有提供
-        if (!updatedProduct.image) {
-            updatedProduct.image = 'https://via.placeholder.com/300x300/f0f0f0/333?text=商品';
-        }
-        
-        // 更新產品列表 (只需要更新一次，因為 products 已經指向 ADMIN_MOCK_DATA.products)
-        products[index] = updatedProduct;
-        
-        // 重新顯示商品列表
-        displayProducts();
-        
-        // 更新儀表板統計
-        updateStatsUI();
-        
+        // 更新成功後重新載入商品
+        await loadProducts();
         // 關閉模態框
         closeModal('edit-product-modal');
-        
         showNotification('商品更新成功', 'success');
-        
-        console.log('商品更新成功:', updatedProduct);
-        
     } catch (error) {
         console.error('更新商品失敗:', error);
         showNotification('更新商品失敗', 'error');
