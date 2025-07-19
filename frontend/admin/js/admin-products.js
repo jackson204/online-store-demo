@@ -259,32 +259,34 @@ async function deleteProduct(productId) {
 // 切換精選狀態
 async function toggleFeatured(productId) {
     if (!checkAdminPermission()) return;
-    
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => String(p.id) === String(productId));
     if (!product) {
         showNotification('商品不存在', 'error');
         return;
     }
-    
-    const newFeaturedStatus = !product.featured;
-    
     try {
-        // 更新精選狀態 (只需要更新一次，因為 products 已經指向 ADMIN_MOCK_DATA.products)
-        const index = products.findIndex(p => p.id === productId);
-        if (index !== -1) {
-            products[index].featured = newFeaturedStatus;
+        const response = await fetch(`${API_BASE}/admin/products/${productId}/toggle-featured`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {})
+            }
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            showNotification(error || '切換精選狀態失敗', 'error');
+            return;
         }
-        
-        // 重新顯示商品列表
+        const updatedProduct = await response.json();
+        // 更新本地 products 陣列
+        const idx = products.findIndex(p => String(p.id) === String(productId));
+        if (idx !== -1) {
+            products[idx] = updatedProduct;
+        }
         displayProducts();
-        
-        showNotification(
-            `商品已${newFeaturedStatus ? '設為' : '取消'}精選`, 
-            'success'
-        );
-        
-        console.log(`商品 ${product.name} 精選狀態已更新為: ${newFeaturedStatus}`);
-        
+        updateStatsUI && updateStatsUI();
+        showNotification(`商品已${updatedProduct.featured ? '設為' : '取消'}精選`, 'success');
+        console.log(`商品 ${updatedProduct.name} 精選狀態已更新為: ${updatedProduct.featured}`);
     } catch (error) {
         console.error('切換精選狀態失敗:', error);
         showNotification('更新失敗', 'error');

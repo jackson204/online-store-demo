@@ -194,4 +194,43 @@ public class ProductsController : ControllerBase
         }).ToList();
         return Ok(dtos);
     }
+
+    /// <summary>
+    /// 切換指定商品的精選狀態
+    /// </summary>
+    /// <param name="id">商品 ID</param>
+    /// <returns>更新後的商品資料</returns>
+    /// <response code="200">成功切換精選狀態</response>
+    /// <response code="404">找不到指定的商品</response>
+    [HttpPut("{id}/toggle-featured")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDto>> ToggleFeatured(int id)
+    {
+        var product = await _db.Products.FindAsync(id);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        product.Featured = !product.Featured;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var dto = new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Category = product.Category,
+            Price = product.Price,
+            Stock = product.Stock,
+            Featured = product.Featured,
+            Image = product.Image,
+            CreatedAt = product.CreatedAt,
+            UpdatedAt = product.UpdatedAt
+        };
+        return Ok(dto);
+    }
 }
