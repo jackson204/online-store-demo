@@ -76,6 +76,19 @@ public class GetProductsQueryHandlerTests
         result.Should().Contain(x => x.Name == "MinPrice" && x.Price == int.MinValue);
     }
 
+    [Fact]
+    public async Task Handle_ThrowsException_WhenDatabaseIsFaulted()
+    {
+        // Arrange
+        await _context.DisposeAsync();
+
+        // Act
+        Func<Task> act = async () => await WhenQueryingProducts();
+
+        // Assert
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
     private Task<IEnumerable<ProductDto>> WhenQueryingProducts()
     {
         return _target.Handle(new GetProductsQuery(), CancellationToken.None);
