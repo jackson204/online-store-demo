@@ -77,7 +77,7 @@ public class GetProductsQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ThrowsDatabaseQueryException_WhenDatabaseIsFaulted()
+    public async Task Handle_ThrowsObjectDisposedException_WhenDatabaseIsFaulted()
     {
         // Arrange
         await _context.DisposeAsync();
@@ -86,7 +86,7 @@ public class GetProductsQueryHandlerTests
         Func<Task> act = async () => await WhenQueryingProducts();
 
         // Assert
-        await act.Should().ThrowAsync<DatabaseQueryException>();
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
     private Task<IEnumerable<ProductDto>> WhenQueryingProducts()
