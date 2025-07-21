@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
-using OnlineStore.AdminApi.Features.Products.Queries;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace OnlineStore.AdminApi.Middleware;
 
@@ -15,7 +16,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
         {
             await next(context);
         }
-        catch (DatabaseQueryException ex)
+        catch (Exception ex) when (ex is DbUpdateException or DbUpdateConcurrencyException or ObjectDisposedException or DbException)
         {
             await HandleExceptionAsync(context, ex, HttpStatusCode.InternalServerError, "資料庫查詢異常");
         }
@@ -28,7 +29,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
     private static async Task HandleExceptionAsync(HttpContext context, Exception ex, HttpStatusCode statusCode, string message)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)statusCode;
+        context.Response.StatusCode = (int) statusCode;
         var error = new
         {
             error = message,

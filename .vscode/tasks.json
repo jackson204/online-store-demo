@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "dotnet build OnlineStore.AdminApi",
+			"command": "dotnet build OnlineStore.AdminApi/OnlineStore.AdminApi.csproj",
+			"group": "build",
+			"isBackground": false
+		}
+	]
+}
