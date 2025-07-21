@@ -12,20 +12,23 @@ public class GetProductsQueryHandler(ApplicationDbContext db) : IRequestHandler<
     {
         try
         {
-            var products = await db.Products.AsNoTracking().ToListAsync(cancellationToken);
-            return products.Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Category = p.Category,
-                Price = p.Price,
-                Stock = p.Stock,
-                Featured = p.Featured,
-                Image = p.Image,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt
-            });
+            var products = await db.Products
+                .AsNoTracking()
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Category = p.Category,
+                    Price = p.Price,
+                    Stock = p.Stock,
+                    Featured = p.Featured,
+                    Image = p.Image,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt
+                })
+                .ToListAsync(cancellationToken);
+            return products;
         }
         catch (Exception ex) when (ex is DbUpdateException or DbUpdateConcurrencyException or ObjectDisposedException or DbException)
         {
