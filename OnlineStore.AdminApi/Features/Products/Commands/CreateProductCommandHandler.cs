@@ -21,8 +21,13 @@ public sealed class CreateProductCommandHandler(ApplicationDbContext db) : IRequ
         {
             Name = request.Product.Name,
             Description = request.Product.Description,
+            Category = request.Product.Category,
             Price = request.Product.Price,
-            IsFeatured = request.Product.IsFeatured
+            Stock = request.Product.Stock,
+            Featured = request.Product.Featured,
+            Image = request.Product.Image,
+            CreatedAt = request.Product.CreatedAt,
+            UpdatedAt = request.Product.UpdatedAt
         };
         db.Products.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
@@ -31,8 +36,13 @@ public sealed class CreateProductCommandHandler(ApplicationDbContext db) : IRequ
             Id = p.Id,
             Name = p.Name,
             Description = p.Description,
+            Category = p.Category,
             Price = p.Price,
-            Featured = p.Featured
+            Stock = p.Stock,
+            Featured = p.Featured,
+            Image = p.Image,
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt
         }).ToListAsync(cancellationToken);
         return new CreateProductResult { Success = true, Products = products };
     }
