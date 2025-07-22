@@ -1,4 +1,4 @@
-namespace OnlineStore.AdminApi.Models;
+namespace OnlineStore.AdminApi.ViewModels;
 
 /// <summary>
 /// 商品資料 ViewModel
@@ -29,28 +29,9 @@ public class ProductViewModel
     /// <summary>商品圖片網址</summary>
     public string Image { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 是否為精選商品
-    /// </summary>
-    public bool IsFeatured
-    {
-        get => Featured;
-        set => Featured = value;
-    }
-
-    //TODO: 以下屬性可根據實際需求決定是否需要
-    /// <summary>商品評分</summary>
-    // public double Rating { get; set; }
-    
-    //TODO: 以下屬性可根據實際需求決定是否需要
-    /// <summary>評論數</summary>
-    // public int Reviews { get; set; }
-
     /// <summary>建立日期</summary>
     public DateTime CreatedAt { get; set; }
 
     /// <summary>更新日期（可選）</summary>
     public DateTime? UpdatedAt { get; set; }
 }
-
-// 移除 ProductDto，請改用 ProductViewModel 分層

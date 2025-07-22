@@ -89,7 +89,7 @@ public class GetProductsQueryHandlerTests
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    private Task<IEnumerable<ProductDto>> WhenQueryingProducts()
+    private Task<IEnumerable<OnlineStore.AdminApi.ViewModels.ProductViewModel>> WhenQueryingProducts()
     {
         return _target.Handle(new GetProductsQuery(), CancellationToken.None);
     }

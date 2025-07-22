@@ -1,0 +1,1 @@
+// 此檔案已廢棄，請改用 OnlineStore.AdminApi.ViewModels.ProductViewModel

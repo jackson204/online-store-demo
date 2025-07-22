@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using OnlineStore.AdminApi.Data;
 using OnlineStore.AdminApi.Features.Products.Commands;
-using OnlineStore.AdminApi.Models;
+using OnlineStore.AdminApi.ViewModels;
 
 namespace OnlineStore.AdminApi.Tests.Features.Products.Commands;
 
@@ -23,7 +23,18 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldCreateProduct_WhenInputIsValid()
     {
-        var command = new CreateProductCommand(CreateDto(_ => { }));
+        var vm = CreateViewModel(_ => { });
+        var command = new CreateProductCommand(
+            vm.Name,
+            vm.Description,
+            vm.Category,
+            vm.Price,
+            vm.Stock,
+            vm.Featured,
+            vm.Image,
+            vm.CreatedAt,
+            vm.UpdatedAt
+        );
         var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
@@ -42,7 +53,18 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldFail_WhenNameIsEmpty()
     {
-        var command = new CreateProductCommand(CreateDto(dto => dto.Name = string.Empty));
+        var vm = CreateViewModel(dto => dto.Name = string.Empty);
+        var command = new CreateProductCommand(
+            vm.Name,
+            vm.Description,
+            vm.Category,
+            vm.Price,
+            vm.Stock,
+            vm.Featured,
+            vm.Image,
+            vm.CreatedAt,
+            vm.UpdatedAt
+        );
         var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeFalse();
@@ -52,11 +74,22 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldFail_WhenPriceIsNegative()
     {
-        var command = new CreateProductCommand(CreateDto(dto => {
+        var vm = CreateViewModel(dto => {
             dto.Name = "Negative Price";
             dto.Price = -1;
             dto.Description = "Price is negative";
-        }));
+        });
+        var command = new CreateProductCommand(
+            vm.Name,
+            vm.Description,
+            vm.Category,
+            vm.Price,
+            vm.Stock,
+            vm.Featured,
+            vm.Image,
+            vm.CreatedAt,
+            vm.UpdatedAt
+        );
         var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeFalse();
@@ -66,11 +99,22 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldFail_WhenStockIsNegative()
     {
-        var command = new CreateProductCommand(CreateDto(dto => {
+        var vm = CreateViewModel(dto => {
             dto.Name = "Negative Stock";
             dto.Stock = -10;
             dto.Description = "Stock is negative";
-        }));
+        });
+        var command = new CreateProductCommand(
+            vm.Name,
+            vm.Description,
+            vm.Category,
+            vm.Price,
+            vm.Stock,
+            vm.Featured,
+            vm.Image,
+            vm.CreatedAt,
+            vm.UpdatedAt
+        );
         var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeFalse();
@@ -80,14 +124,25 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldCreateProduct_WithExtremeValues()
     {
-        var command = new CreateProductCommand(CreateDto(dto => {
+        var vm = CreateViewModel(dto => {
             dto.Name = "MaxPrice";
             dto.Description = "Max price test";
             dto.Price = int.MaxValue;
             dto.Stock = int.MaxValue;
             dto.Featured = false;
             dto.Image = "img.jpg";
-        }));
+        });
+        var command = new CreateProductCommand(
+            vm.Name,
+            vm.Description,
+            vm.Category,
+            vm.Price,
+            vm.Stock,
+            vm.Featured,
+            vm.Image,
+            vm.CreatedAt,
+            vm.UpdatedAt
+        );
         var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
@@ -100,7 +155,7 @@ public class CreateProductCommandHandlerTests : IDisposable
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
         {
             var handler = new CreateProductCommandHandler(null!);
-            var command = new CreateProductCommand(CreateDto(dto => {
+            var vm = CreateViewModel(dto => {
                 dto.Name = "Test";
                 dto.Description = "Test";
                 dto.Category = "Test";
@@ -108,7 +163,18 @@ public class CreateProductCommandHandlerTests : IDisposable
                 dto.Stock = 1;
                 dto.Featured = false;
                 dto.Image = "img.jpg";
-            }));
+            });
+            var command = new CreateProductCommand(
+                vm.Name,
+                vm.Description,
+                vm.Category,
+                vm.Price,
+                vm.Stock,
+                vm.Featured,
+                vm.Image,
+                vm.CreatedAt,
+                vm.UpdatedAt
+            );
             await handler.Handle(command, CancellationToken.None);
         });
     }
@@ -116,7 +182,7 @@ public class CreateProductCommandHandlerTests : IDisposable
     [Fact]
     public async Task Handle_ShouldCreateProduct_WhenDuplicateNameAllowed()
     {
-        var dto1 = CreateDto(dto => {
+        var dto1 = CreateViewModel(dto => {
             dto.Name = "Duplicate";
             dto.Description = "First";
             dto.Category = "TestCategory";
@@ -125,8 +191,18 @@ public class CreateProductCommandHandlerTests : IDisposable
             dto.Featured = false;
             dto.Image = "img1.jpg";
         });
-        await _target.Handle(new CreateProductCommand(dto1), CancellationToken.None);
-        var dto2 = CreateDto(dto => {
+        await _target.Handle(new CreateProductCommand(
+            dto1.Name,
+            dto1.Description,
+            dto1.Category,
+            dto1.Price,
+            dto1.Stock,
+            dto1.Featured,
+            dto1.Image,
+            dto1.CreatedAt,
+            dto1.UpdatedAt
+        ), CancellationToken.None);
+        var dto2 = CreateViewModel(dto => {
             dto.Name = "Duplicate";
             dto.Description = "Second";
             dto.Category = "TestCategory";
@@ -135,15 +211,25 @@ public class CreateProductCommandHandlerTests : IDisposable
             dto.Featured = true;
             dto.Image = "img2.jpg";
         });
-        var result = await _target.Handle(new CreateProductCommand(dto2), CancellationToken.None);
+        var result = await _target.Handle(new CreateProductCommand(
+            dto2.Name,
+            dto2.Description,
+            dto2.Category,
+            dto2.Price,
+            dto2.Stock,
+            dto2.Featured,
+            dto2.Image,
+            dto2.CreatedAt,
+            dto2.UpdatedAt
+        ), CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.Products.Should().Contain(p => p.Name == "Duplicate" && p.Description == "Second");
     }
 
-    private static ProductDto CreateDto(Action<ProductDto> action)
+    private static ProductViewModel CreateViewModel(Action<ProductViewModel> action)
     {
-        var dto = new ProductDto
+        var model = new ProductViewModel
         {
             Name = "Test Product",
             Description = "This is a test product.",
@@ -154,8 +240,8 @@ public class CreateProductCommandHandlerTests : IDisposable
             Image = "test.jpg",
             CreatedAt = DateTime.UtcNow
         };
-        action(dto);
-        return dto;
+        action(model);
+        return model;
     }
 
     public void Dispose()

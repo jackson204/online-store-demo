@@ -8,40 +8,33 @@ namespace OnlineStore.AdminApi.Features.Products.Commands;
 /// <summary>
 /// 建立商品的 Command Handler。
 /// </summary>
-public sealed class CreateProductCommandHandler(ApplicationDbContext db) : IRequestHandler<CreateProductCommand, CreateProductResult>
+public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, CreateProductResult>
 {
-    private readonly ApplicationDbContext _db = db ?? throw new ArgumentNullException(nameof(db));
-
+    private readonly ApplicationDbContext _db;
+    public CreateProductCommandHandler(ApplicationDbContext db)
+    {
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+    }
     public async Task<CreateProductResult> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        // 資料驗證
-        if (string.IsNullOrWhiteSpace(request.Product.Name))
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Price < 0 || request.Stock < 0)
         {
-            return new CreateProductResult { Success = false, ErrorMessage = "商品名稱不得為空" };
-        }
-        if (request.Product.Price < 0)
-        {
-            return new CreateProductResult { Success = false, ErrorMessage = "價格不可為負" };
-        }
-        if (request.Product.Stock < 0)
-        {
-            return new CreateProductResult { Success = false, ErrorMessage = "庫存不可為負" };
+            return new CreateProductResult { Success = false, ErrorMessage = "Invalid product data." };
         }
         var entity = new Product
         {
-            Name = request.Product.Name,
-            Description = request.Product.Description,
-            Category = request.Product.Category,
-            Price = request.Product.Price,
-            Stock = request.Product.Stock,
-            Featured = request.Product.Featured,
-            Image = request.Product.Image,
-            CreatedAt = request.Product.CreatedAt,
-            UpdatedAt = request.Product.UpdatedAt
+            Name = request.Name,
+            Description = request.Description ?? string.Empty,
+            Category = request.Category ?? string.Empty,
+            Price = request.Price,
+            Stock = request.Stock,
+            Featured = request.Featured,
+            Image = request.Image ?? string.Empty,
+            CreatedAt = request.CreatedAt
         };
         _db.Products.Add(entity);
         await _db.SaveChangesAsync(cancellationToken);
-        var products = await _db.Products.Select(p => new ProductDto
+        var products = await _db.Products.Select(p => new ProductViewModel
         {
             Id = p.Id,
             Name = p.Name,

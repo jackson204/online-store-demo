@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using OnlineStore.AdminApi.Models;
+using OnlineStore.AdminApi.ViewModels;
 using OnlineStore.AdminApi.Features.Products.Commands;
 using OnlineStore.AdminApi.Features.Products.Queries;
 
@@ -31,27 +31,38 @@ public class ProductsController : ControllerBase
     /// <response code="200">成功取得商品清單</response>
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+    [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ProductViewModel>>> GetProducts()
     {
-        var dtos = await _mediator.Send(new GetProductsQuery());
-        return Ok(dtos);
+        var viewModels = await _mediator.Send(new GetProductsQuery());
+        return Ok(viewModels);
     }
 
     /// <summary>
     /// 新增商品，並回傳所有商品清單
     /// </summary>
-    /// <param name="dto">商品資料</param>
+    /// <param name="viewModel">商品資料</param>
     /// <returns>所有商品資料集合</returns>
     /// <response code="200">成功建立商品並取得商品清單</response>
     /// <response code="400">資料驗證失敗</response>
     [HttpPost]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> CreateProduct([FromBody] ProductDto dto)
+    public async Task<ActionResult<IEnumerable<ProductViewModel>>> CreateProduct([FromBody] ProductViewModel viewModel)
     {
-        var result = await _mediator.Send(new CreateProductCommand(dto));
+        var command = new CreateProductCommand(
+            viewModel.Name,
+            viewModel.Description,
+            viewModel.Category,
+            viewModel.Price,
+            viewModel.Stock,
+            viewModel.Featured,
+            viewModel.Image,
+            viewModel.CreatedAt,
+            viewModel.UpdatedAt
+        );
+        var result = await _mediator.Send(command);
         if (!result.Success)
         {
             return BadRequest(result.ErrorMessage);
@@ -63,19 +74,30 @@ public class ProductsController : ControllerBase
     /// 更新商品資料
     /// </summary>
     /// <param name="id">商品 ID</param>
-    /// <param name="dto">商品資料</param>
+    /// <param name="viewModel">商品資料</param>
     /// <returns>更新後的商品資料</returns>
     /// <response code="200">成功更新商品資料</response>
     /// <response code="404">找不到指定的商品</response>
     /// <response code="400">資料驗證失敗</response>
     [HttpPut("{id}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProductDto>> PutProduct(int id, [FromBody] ProductDto dto)
+    public async Task<ActionResult<ProductViewModel>> PutProduct(int id, [FromBody] ProductViewModel viewModel)
     {
-        var result = await _mediator.Send(new UpdateProductCommand(id, dto));
+        var result = await _mediator.Send(new UpdateProductCommand(
+            id,
+            viewModel.Name,
+            viewModel.Description,
+            viewModel.Category,
+            viewModel.Price,
+            viewModel.Stock,
+            viewModel.Featured,
+            viewModel.Image,
+            viewModel.CreatedAt,
+            viewModel.UpdatedAt
+        ));
         if (!result.Success)
         {
             if (result.NotFound)
@@ -94,9 +116,9 @@ public class ProductsController : ControllerBase
     /// <response code="404">找不到指定的商品</response>
     [HttpDelete("{id}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> DeleteProduct(int id)
+    public async Task<ActionResult<IEnumerable<ProductViewModel>>> DeleteProduct(int id)
     {
         var result = await _mediator.Send(new DeleteProductCommand(id));
         if (!result.Success)
@@ -115,9 +137,9 @@ public class ProductsController : ControllerBase
     /// <response code="404">找不到指定的商品</response>
     [HttpPut("{id}/toggle-featured")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDto>> ToggleFeatured(int id)
+    public async Task<ActionResult<ProductViewModel>> ToggleFeatured(int id)
     {
         var result = await _mediator.Send(new ToggleFeaturedCommand(id));
         if (!result.Success)

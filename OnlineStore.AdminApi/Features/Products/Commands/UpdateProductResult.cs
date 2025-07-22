@@ -7,8 +7,8 @@ namespace OnlineStore.AdminApi.Features.Products.Commands;
 /// </summary>
 public sealed class UpdateProductResult
 {
+    public ProductViewModel? Product { get; init; }
     public bool Success { get; init; }
     public bool NotFound { get; init; }
     public string? ErrorMessage { get; init; }
-    public ProductDto? Product { get; init; }
 }

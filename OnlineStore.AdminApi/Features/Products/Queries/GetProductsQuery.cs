@@ -1,6 +1,8 @@
 using MediatR;
-using OnlineStore.AdminApi.Models;
+using OnlineStore.AdminApi.ViewModels;
 
 namespace OnlineStore.AdminApi.Features.Products.Queries;
 
-public record GetProductsQuery() : IRequest<IEnumerable<ProductDto>>;
+public class GetProductsQuery : IRequest<IEnumerable<ProductViewModel>>
+{
+}

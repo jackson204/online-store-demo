@@ -1,3 +1,5 @@
+using OnlineStore.AdminApi.ViewModels;
+
 namespace OnlineStore.AdminApi.Features.Products.Commands;
 
 /// <summary>
@@ -5,6 +7,6 @@ namespace OnlineStore.AdminApi.Features.Products.Commands;
 /// </summary>
 public sealed class DeleteProductResult
 {
+    public IEnumerable<ProductViewModel>? Products { get; init; }
     public bool Success { get; init; }
-    public IEnumerable<Models.ProductDto>? Products { get; init; }
 }

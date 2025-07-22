@@ -6,5 +6,5 @@ namespace OnlineStore.AdminApi.Features.Products.Commands;
 public sealed class ToggleFeaturedResult
 {
     public bool Success { get; init; }
-    public Models.ProductDto? Product { get; init; }
+    public Models.ProductViewModel? Product { get; init; }
 }
