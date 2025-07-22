@@ -14,7 +14,7 @@ public class CreateProductCommandHandlerTests : IDisposable
     public CreateProductCommandHandlerTests()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}")
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _db = new ApplicationDbContext(options);
         _target = new CreateProductCommandHandler(_db);
