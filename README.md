@@ -148,23 +148,56 @@ public class ProductDto {
 
 ---
 
-## 今日 TODO LIST（2025/07/19）
+## 進階功能規劃與學習路線
+
+建議學習與實作順序如下：
+
+1. **JWT（JSON Web Token）**
+   - 實作 API 認證與授權的基礎，確保用戶身分安全。
+2. **權限區分（角色/權限控管）**
+   - 根據用戶角色（如管理員/一般用戶）限制 API 與前端功能存取。
+3. **NLog（記錄）**
+   - 導入 NLog 進行日誌記錄，方便除錯、稽核與追蹤異常。
+4. **Redis（快取/分散式 Session）**
+   - 使用 Redis 儲存快取資料、Session 或作為訊息佇列，提升效能與可用性。
+5. **匯出 Excel**
+   - 提供報表或資料匯出功能，常用於後台管理。
+6. **推播（推送通知，建議可用 SignalR 或 Firebase Cloud Messaging）**
+   - 即時通知用戶訂單狀態、促銷等訊息。
+
+---
+
+## 今日 TODO LIST（2025/07/25）
 
 ### 已完成
-- [x] 完成前端 client 主要功能與管理端主要功能
-- [x] 完成後端 CORS 設定，前後端可正確通訊
-- [x] 使用 Docker 啟動 MSSQL 容器並完成資料庫連線
-- [x] 完成 Entity Framework Core 整合與資料表遷移
-- [x] ProductsController 已改為資料庫查詢
-- [x] 新增 GetProductsQueryHandler 單元測試，提升查詢功能測試覆蓋率
+- 完成前端 client 主要功能與管理端主要功能
+- 完成後端 CORS 設定，前後端可正確通訊
+- 使用 Docker 啟動 MSSQL 容器並完成資料庫連線
+- 完成 Entity Framework Core 整合與資料表遷移
+- ProductsController 已改為資料庫查詢
+- 新增 GetProductsQueryHandler 單元測試，提升查詢功能測試覆蓋率
 
-### 今日重點
+### 今日進度（2025/07/25）
+- 完成前端 client 主要功能與管理端主要功能
+- 完成後端 CORS 設定，前後端可正確通訊
+- 使用 Docker 啟動 MSSQL 容器並完成資料庫連線
+- 完成 Entity Framework Core 整合與資料表遷移
+- ProductsController 已改為資料庫查詢
+- 新增 GetProductsQueryHandler 單元測試，提升查詢功能測試覆蓋率
+
+### 開發中/待辦功能
+- [ ] JWT token 認證/授權（前後端皆需串接）
+- [ ] 實作權限區分（管理員/一般用戶 API 權限控管）
+- [ ] 導入 NLog 日誌記錄（API 層級 log）
+- [ ] Redis 快取/Session 整合（效能優化）
+- [ ] 匯出 Excel 報表功能（管理端匯出商品/訂單資料）
+- [ ] 推播（SignalR/Firebase Demo，管理端即時通知）
 - [ ] 強化後端 API 單元測試覆蓋率（持續新增 Products/Orders 相關測試）
 - [ ] 檢查資料庫 Migration 與模型同步狀態
 - [ ] 優化 Dockerfile 與 .dockerignore，確保映像檔最佳化
 - [ ] 撰寫/補充 README 測試與部署章節
 
-> 近期已完成主要架構與資料庫整合，今日聚焦於測試覆蓋率提升與容器化最佳實踐。
+> 近期已完成主要架構與資料庫整合，今日聚焦於測試覆蓋率提升、容器化最佳實踐與進階功能學習。
 
 ---
 
