@@ -24,12 +24,12 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         var entity = new Product
         {
             Name = request.Name,
-            Description = request.Description ?? string.Empty,
-            Category = request.Category ?? string.Empty,
+            Description = request.Description,
+            Category = request.Category,
             Price = request.Price,
             Stock = request.Stock,
             Featured = request.Featured,
-            Image = request.Image ?? string.Empty,
+            Image = request.Image,
             CreatedAt = request.CreatedAt
         };
         _db.Products.Add(entity);

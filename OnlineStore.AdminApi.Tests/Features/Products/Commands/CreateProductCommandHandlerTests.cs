@@ -39,15 +39,18 @@ public class CreateProductCommandHandlerTests : IDisposable
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.Products.Should().NotBeNull();
-        result.Products.Should().ContainSingle(p =>
-            p.Name == "Test Product" &&
-            p.Description == "This is a test product." &&
-            p.Category == "TestCategory" &&
-            p.Price == 99 &&
-            p.Stock == 10 &&
-            p.Featured &&
-            p.Image == "test.jpg"
-        );
+        result.Products.Should().BeEquivalentTo(new[]
+        {
+            new {
+                Name = "Test Product",
+                Description = "This is a test product.",
+                Category = "TestCategory",
+                Price = 99,
+                Stock = 10,
+                Featured = true,
+                Image = "test.jpg"
+            }
+        }, options => options.ExcludingMissingMembers());
     }
 
     [Fact]
