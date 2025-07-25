@@ -1,4 +1,5 @@
 using MediatR;
+using OnlineStore.AdminApi.ViewModels;
 
 namespace OnlineStore.AdminApi.Features.Products.Commands;
 
@@ -16,26 +17,17 @@ public sealed class CreateProductCommand : IRequest<CreateProductResult>
     public string Image { get; }
     public DateTime CreatedAt { get; }
     public DateTime? UpdatedAt { get; }
-
-    public CreateProductCommand(
-        string name,
-        string description,
-        string category,
-        int price,
-        int stock,
-        bool featured,
-        string image,
-        DateTime createdAt,
-        DateTime? updatedAt = null)
+ 
+    public CreateProductCommand(ProductViewModel viewModel)
     {
-        Name = name ?? string.Empty;
-        Description = description ?? string.Empty;
-        Category = category ?? string.Empty;
-        Price = price;
-        Stock = stock;
-        Featured = featured;
-        Image = image ?? string.Empty;
-        CreatedAt = createdAt;
-        UpdatedAt = updatedAt;
+        Name = viewModel.Name;
+        Description = viewModel.Description;
+        Category = viewModel.Category;
+        Price = viewModel.Price;
+        Stock = viewModel.Stock;
+        Featured = viewModel.Featured;
+        Image = viewModel.Image;
+        CreatedAt = viewModel.CreatedAt;
+        UpdatedAt = viewModel.UpdatedAt;
     }
 }

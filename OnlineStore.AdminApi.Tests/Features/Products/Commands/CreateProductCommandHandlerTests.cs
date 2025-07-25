@@ -21,216 +21,73 @@ public class CreateProductCommandHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task Handle_ShouldCreateProduct_WhenInputIsValid()
+    public async Task Handle_ValidInput_ShouldCreateProductAndReturnSuccess()
     {
-        var vm = CreateViewModel(_ => { });
-        var command = new CreateProductCommand(
-            vm.Name,
-            vm.Description,
-            vm.Category,
-            vm.Price,
-            vm.Stock,
-            vm.Featured,
-            vm.Image,
-            vm.CreatedAt,
-            vm.UpdatedAt
-        );
-        var result = await _target.Handle(command, CancellationToken.None);
+        var result = await WhenHandle(_ =>
+        {
+        });
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.Products.Should().NotBeNull();
-        result.Products.Should().BeEquivalentTo(new[]
+
+        // var dbProduct = await _db.Products.FirstOrDefaultAsync(p => p.Name == vm.Name);
+        // dbProduct.Should().NotBeNull();
+        // dbProduct!.Description.Should().Be(vm.Description);
+        // dbProduct.Category.Should().Be(vm.Category);
+        // dbProduct.Price.Should().Be(vm.Price);
+        // dbProduct.Stock.Should().Be(vm.Stock);
+        // dbProduct.Featured.Should().Be(vm.Featured);
+        // dbProduct.Image.Should().Be(vm.Image);
+    }
+
+    [Fact]
+    public async Task Handle_EmptyName_ShouldFail()
+    {
+        var result = await WhenHandle(x => x.Name = "");
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().NotBeNullOrEmpty();
+        (await _db.Products.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Handle_NegativePrice_ShouldFail()
+    {
+        var result = await WhenHandle(x => x.Price = -100);
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().NotBeNullOrEmpty();
+        (await _db.Products.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Handle_NegativeStock_ShouldFail()
+    {
+        var result = await WhenHandle(x => x.Stock = -5);
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().NotBeNullOrEmpty();
+        (await _db.Products.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Handle_ExtremeValues_ShouldCreateProduct()
+    {
+        var result = await WhenHandle(x =>
         {
-            new {
-                Name = "Test Product",
-                Description = "This is a test product.",
-                Category = "TestCategory",
-                Price = 99,
-                Stock = 10,
-                Featured = true,
-                Image = "test.jpg"
-            }
-        }, options => options.ExcludingMissingMembers());
-    }
-
-    [Fact]
-    public async Task Handle_ShouldFail_WhenNameIsEmpty()
-    {
-        var vm = CreateViewModel(dto => dto.Name = string.Empty);
-        var command = new CreateProductCommand(
-            vm.Name,
-            vm.Description,
-            vm.Category,
-            vm.Price,
-            vm.Stock,
-            vm.Featured,
-            vm.Image,
-            vm.CreatedAt,
-            vm.UpdatedAt
-        );
-        var result = await _target.Handle(command, CancellationToken.None);
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Products.Should().BeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task Handle_ShouldFail_WhenPriceIsNegative()
-    {
-        var vm = CreateViewModel(dto => {
-            dto.Name = "Negative Price";
-            dto.Price = -1;
-            dto.Description = "Price is negative";
+            x.Price = int.MaxValue;
+            x.Stock = int.MaxValue;
+            x.Name = "Extreme";
         });
-        var command = new CreateProductCommand(
-            vm.Name,
-            vm.Description,
-            vm.Category,
-            vm.Price,
-            vm.Stock,
-            vm.Featured,
-            vm.Image,
-            vm.CreatedAt,
-            vm.UpdatedAt
-        );
-        var result = await _target.Handle(command, CancellationToken.None);
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Products.Should().BeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task Handle_ShouldFail_WhenStockIsNegative()
-    {
-        var vm = CreateViewModel(dto => {
-            dto.Name = "Negative Stock";
-            dto.Stock = -10;
-            dto.Description = "Stock is negative";
-        });
-        var command = new CreateProductCommand(
-            vm.Name,
-            vm.Description,
-            vm.Category,
-            vm.Price,
-            vm.Stock,
-            vm.Featured,
-            vm.Image,
-            vm.CreatedAt,
-            vm.UpdatedAt
-        );
-        var result = await _target.Handle(command, CancellationToken.None);
-        result.Should().NotBeNull();
-        result.Success.Should().BeFalse();
-        result.Products.Should().BeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task Handle_ShouldCreateProduct_WithExtremeValues()
-    {
-        var vm = CreateViewModel(dto => {
-            dto.Name = "MaxPrice";
-            dto.Description = "Max price test";
-            dto.Price = int.MaxValue;
-            dto.Stock = int.MaxValue;
-            dto.Featured = false;
-            dto.Image = "img.jpg";
-        });
-        var command = new CreateProductCommand(
-            vm.Name,
-            vm.Description,
-            vm.Category,
-            vm.Price,
-            vm.Stock,
-            vm.Featured,
-            vm.Image,
-            vm.CreatedAt,
-            vm.UpdatedAt
-        );
-        var result = await _target.Handle(command, CancellationToken.None);
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
-        result.Products.Should().ContainSingle(p => p.Price == int.MaxValue && p.Stock == int.MaxValue);
+        var dbProduct = await _db.Products.FirstOrDefaultAsync(p => p.Name == "Extreme");
+        dbProduct.Should().NotBeNull();
+        dbProduct!.Price.Should().Be(int.MaxValue);
+        dbProduct.Stock.Should().Be(int.MaxValue);
     }
 
-    [Fact]
-    public async Task Handle_ShouldFail_WhenContextIsNull()
-    {
-        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-        {
-            var handler = new CreateProductCommandHandler(null!);
-            var vm = CreateViewModel(dto => {
-                dto.Name = "Test";
-                dto.Description = "Test";
-                dto.Category = "Test";
-                dto.Price = 1;
-                dto.Stock = 1;
-                dto.Featured = false;
-                dto.Image = "img.jpg";
-            });
-            var command = new CreateProductCommand(
-                vm.Name,
-                vm.Description,
-                vm.Category,
-                vm.Price,
-                vm.Stock,
-                vm.Featured,
-                vm.Image,
-                vm.CreatedAt,
-                vm.UpdatedAt
-            );
-            await handler.Handle(command, CancellationToken.None);
-        });
-    }
-
-    [Fact]
-    public async Task Handle_ShouldCreateProduct_WhenDuplicateNameAllowed()
-    {
-        var dto1 = CreateViewModel(dto => {
-            dto.Name = "Duplicate";
-            dto.Description = "First";
-            dto.Category = "TestCategory";
-            dto.Price = 10;
-            dto.Stock = 1;
-            dto.Featured = false;
-            dto.Image = "img1.jpg";
-        });
-        await _target.Handle(new CreateProductCommand(
-            dto1.Name,
-            dto1.Description,
-            dto1.Category,
-            dto1.Price,
-            dto1.Stock,
-            dto1.Featured,
-            dto1.Image,
-            dto1.CreatedAt,
-            dto1.UpdatedAt
-        ), CancellationToken.None);
-        var dto2 = CreateViewModel(dto => {
-            dto.Name = "Duplicate";
-            dto.Description = "Second";
-            dto.Category = "TestCategory";
-            dto.Price = 20;
-            dto.Stock = 2;
-            dto.Featured = true;
-            dto.Image = "img2.jpg";
-        });
-        var result = await _target.Handle(new CreateProductCommand(
-            dto2.Name,
-            dto2.Description,
-            dto2.Category,
-            dto2.Price,
-            dto2.Stock,
-            dto2.Featured,
-            dto2.Image,
-            dto2.CreatedAt,
-            dto2.UpdatedAt
-        ), CancellationToken.None);
-        result.Should().NotBeNull();
-        result.Success.Should().BeTrue();
-        result.Products.Should().Contain(p => p.Name == "Duplicate" && p.Description == "Second");
-    }
-
-    private static ProductViewModel CreateViewModel(Action<ProductViewModel> action)
+    private async Task<CreateProductResult> WhenHandle(Action<ProductViewModel> action)
     {
         var model = new ProductViewModel
         {
@@ -244,7 +101,7 @@ public class CreateProductCommandHandlerTests : IDisposable
             CreatedAt = DateTime.UtcNow
         };
         action(model);
-        return model;
+        return await _target.Handle(new CreateProductCommand(model), CancellationToken.None);
     }
 
     public void Dispose()

@@ -51,18 +51,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ProductViewModel>>> CreateProduct([FromBody] ProductViewModel viewModel)
     {
-        var command = new CreateProductCommand(
-            viewModel.Name,
-            viewModel.Description,
-            viewModel.Category,
-            viewModel.Price,
-            viewModel.Stock,
-            viewModel.Featured,
-            viewModel.Image,
-            viewModel.CreatedAt,
-            viewModel.UpdatedAt
-        );
-        var result = await _mediator.Send(command);
+        var result = await _mediator.Send(new CreateProductCommand(viewModel));
         if (!result.Success)
         {
             return BadRequest(result.ErrorMessage);

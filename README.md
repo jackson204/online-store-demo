@@ -164,7 +164,10 @@ public class ProductDto {
    - 提供報表或資料匯出功能，常用於後台管理。
 6. **推播（推送通知，建議可用 SignalR 或 Firebase Cloud Messaging）**
    - 即時通知用戶訂單狀態、促銷等訊息。
-
+7. Message Queue（訊息佇列）
+   - 使用 RabbitMQ 或 Azure Service Bus 等實作非同步處理與事件驅動架構。
+8. JMter（性能測試）
+   - 使用 JMter 進行 API 性能測試，確保系統在高負載下仍能穩定運行。
 ---
 
 ## 今日 TODO LIST（2025/07/25）
