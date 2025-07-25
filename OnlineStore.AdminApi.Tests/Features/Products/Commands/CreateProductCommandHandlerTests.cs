@@ -26,9 +26,27 @@ public class CreateProductCommandHandlerTests : IDisposable
         var result = await WhenHandle(_ =>
         {
         });
-        result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.Products.Should().NotBeNull();
+        result.Should().BeEquivalentTo(new 
+        {
+            Success = true,
+            Products = new []
+            {
+                new
+                {
+                    Name = "Test Product",
+                    Description = "This is a test product.",
+                    Category = "TestCategory",
+                    Price = 99,
+                    Stock = 10,
+                    Featured = true,
+                    Image = "test.jpg",
+              
+                }
+            }
+
+        });
 
         // var dbProduct = await _db.Products.FirstOrDefaultAsync(p => p.Name == vm.Name);
         // dbProduct.Should().NotBeNull();
