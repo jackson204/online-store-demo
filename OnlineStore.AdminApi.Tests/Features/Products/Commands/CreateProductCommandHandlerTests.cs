@@ -26,8 +26,6 @@ public class CreateProductCommandHandlerTests : IDisposable
         var result = await WhenHandle(_ =>
         {
         });
-        result.Success.Should().BeTrue();
-        result.Products.Should().NotBeNull();
         result.Should().BeEquivalentTo(new 
         {
             Success = true,
@@ -47,15 +45,6 @@ public class CreateProductCommandHandlerTests : IDisposable
             }
 
         });
-
-        // var dbProduct = await _db.Products.FirstOrDefaultAsync(p => p.Name == vm.Name);
-        // dbProduct.Should().NotBeNull();
-        // dbProduct!.Description.Should().Be(vm.Description);
-        // dbProduct.Category.Should().Be(vm.Category);
-        // dbProduct.Price.Should().Be(vm.Price);
-        // dbProduct.Stock.Should().Be(vm.Stock);
-        // dbProduct.Featured.Should().Be(vm.Featured);
-        // dbProduct.Image.Should().Be(vm.Image);
     }
 
     [Fact]
