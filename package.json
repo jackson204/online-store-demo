@@ -1,0 +1,54 @@
+{
+  "name": "online-store-demo",
+  "version": "1.0.0",
+  "description": "完整的線上商店系統 - 包含前端與後端",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm run dev",
+    "dev": "npm run start",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && npm test",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "clean": "npm run clean:frontend && npm run clean:backend",
+    "clean:frontend": "cd frontend && Remove-Item -Path node_modules -Recurse -Force -ErrorAction SilentlyContinue",
+    "clean:backend": "cd backend && Remove-Item -Path node_modules -Recurse -Force -ErrorAction SilentlyContinue"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jackson204/online-store-demo.git"
+  },
+  "keywords": [
+    "ecommerce",
+    "online-store",
+    "express",
+    "javascript",
+    "node.js",
+    "rest-api",
+    "csharp",
+    "dotnet"
+  ],
+  "author": "jackson204",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jackson204/online-store-demo/issues"
+  },
+  "homepage": "https://github.com/jackson204/online-store-demo#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}

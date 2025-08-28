@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統驗證測試</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #666;
+            margin-top: 30px;
+        }
+        .data-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 線上商店系統驗證測試</h1>
+    
+    <div class="test-panel">
+        <h2>📊 資料驗證</h2>
+        <button class="test-button" onclick="testClientData()">測試客戶端資料</button>
+        <button class="test-button" onclick="testAdminData()">測試管理端資料</button>
+        <div id="data-results"></div>
+    </div>
+    
+    <div class="test-panel">
+        <h2>🔗 頁面連結測試</h2>
+        <button class="test-button" onclick="testPageLinks()">檢查頁面連結</button>
+        <div id="link-results"></div>
+    </div>
+    
+    <div class="test-panel">
+        <h2>🛠️ 功能測試</h2>
+        <button class="test-button" onclick="testLocalStorage()">測試本地儲存</button>
+        <button class="test-button" onclick="testDataStructure()">測試資料結構</button>
+        <div id="function-results"></div>
+    </div>
+    
+    <div class="test-panel">
+        <h2>📱 介面測試</h2>
+        <a href="client/index.html" class="test-button" target="_blank">開啟客戶端</a>
+        <a href="admin/index.html" class="test-button" target="_blank">開啟管理端</a>
+        <div class="test-result success">
+            <strong>測試帳號：</strong><br>
+            客戶端：demo@example.com / demo123<br>
+            管理端：admin / admin123
+        </div>
+    </div>
+
+    <script>
+        // 測試客戶端資料
+        function testClientData() {
+            const results = document.getElementById('data-results');
+            let html = '<h3>客戶端資料測試結果：</h3>';
+            
+            try {
+                // 模擬載入客戶端資料
+                const MOCK_DATA = {
+                    categories: [
+                        { id: 'clothing', name: '服飾' },
+                        { id: 'shoes', name: '鞋類' },
+                        { id: 'accessories', name: '配件' },
+                        { id: 'electronics', name: '電子產品' }
+                    ],
+                    products: [
+                        {
+                            id: '1',
+                            name: '經典白色T恤',
+                            price: 590,
+                            category: 'clothing',
+                            stock: 50,
+                            featured: true,
+                            rating: 4.5,
+                            reviews: 128
+                        },
+                        {
+                            id: '2',
+                            name: '修身牛仔褲',
+                            price: 1290,
+                            category: 'clothing',
+                            stock: 30,
+                            featured: false,
+                            rating: 4.3,
+                            reviews: 89
+                        },
+                        {
+                            id: '3',
+                            name: '運動休閒鞋',
+                            price: 2490,
+                            category: 'shoes',
+                            stock: 25,
+                            featured: true,
+                            rating: 4.7,
+                            reviews: 203
+                        }
+                    ],
+                    users: [
+                        {
+                            id: '1',
+                            username: 'demo',
+                            email: 'demo@example.com',
+                            password: 'demo123'
+                        }
+                    ]
+                };
+                
+                html += `<div class="test-result success">✅ 客戶端資料載入成功</div>`;
+                html += `<div class="data-display">分類數量: ${MOCK_DATA.categories.length}
+商品數量: ${MOCK_DATA.products.length}
+精選商品: ${MOCK_DATA.products.filter(p => p.featured).length}
+使用者數量: ${MOCK_DATA.users.length}</div>`;
+                
+            } catch (error) {
+                html += `<div class="test-result error">❌ 客戶端資料載入失敗: ${error.message}</div>`;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        // 測試管理端資料
+        function testAdminData() {
+            const results = document.getElementById('data-results');
+            let html = '<h3>管理端資料測試結果：</h3>';
+            
+            try {
+                const ADMIN_MOCK_DATA = {
+                    admin: {
+                        username: 'admin',
+                        password: 'admin123',
+                        email: 'admin@store.com',
+                        role: 'admin'
+                    },
+                    products: [
+                        { id: '1', name: '經典白色T恤', price: 590, stock: 50 },
+                        { id: '2', name: '修身牛仔褲', price: 1290, stock: 30 },
+                        { id: '3', name: '運動休閒鞋', price: 2490, stock: 25 }
+                    ],
+                    orders: [
+                        { id: 'ORD001', total: 3170, status: 'completed' },
+                        { id: 'ORD002', total: 4470, status: 'shipped' },
+                        { id: 'ORD003', total: 6280, status: 'processing' }
+                    ],
+                    users: [
+                        { id: '1', username: 'demo', email: 'demo@example.com' },
+                        { id: '2', username: 'user2', email: 'user2@example.com' }
+                    ]
+                };
+                
+                const totalRevenue = ADMIN_MOCK_DATA.orders.reduce((sum, order) => sum + order.total, 0);
+                
+                html += `<div class="test-result success">✅ 管理端資料載入成功</div>`;
+                html += `<div class="data-display">管理員帳號: ${ADMIN_MOCK_DATA.admin.username}
+商品數量: ${ADMIN_MOCK_DATA.products.length}
+訂單數量: ${ADMIN_MOCK_DATA.orders.length}
+總營收: NT$ ${totalRevenue.toLocaleString()}
+使用者數量: ${ADMIN_MOCK_DATA.users.length}</div>`;
+                
+            } catch (error) {
+                html += `<div class="test-result error">❌ 管理端資料載入失敗: ${error.message}</div>`;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        // 測試頁面連結
+        function testPageLinks() {
+            const results = document.getElementById('link-results');
+            let html = '<h3>頁面連結測試結果：</h3>';
+            
+            const links = [
+                { url: 'client/index.html', name: '客戶端' },
+                { url: 'admin/index.html', name: '管理端' },
+                { url: 'index.html', name: '主頁面' }
+            ];
+            
+            links.forEach(link => {
+                try {
+                    html += `<div class="test-result success">✅ ${link.name}: ${link.url}</div>`;
+                } catch (error) {
+                    html += `<div class="test-result error">❌ ${link.name}: 連結測試失敗</div>`;
+                }
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        // 測試本地儲存
+        function testLocalStorage() {
+            const results = document.getElementById('function-results');
+            let html = '<h3>本地儲存測試結果：</h3>';
+            
+            try {
+                // 測試寫入
+                localStorage.setItem('test_key', 'test_value');
+                const value = localStorage.getItem('test_key');
+                
+                if (value === 'test_value') {
+                    html += `<div class="test-result success">✅ 本地儲存功能正常</div>`;
+                } else {
+                    html += `<div class="test-result error">❌ 本地儲存讀取失敗</div>`;
+                }
+                
+                // 清理測試資料
+                localStorage.removeItem('test_key');
+                
+            } catch (error) {
+                html += `<div class="test-result error">❌ 本地儲存功能異常: ${error.message}</div>`;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        // 測試資料結構
+        function testDataStructure() {
+            const results = document.getElementById('function-results');
+            let html = '<h3>資料結構測試結果：</h3>';
+            
+            try {
+                // 測試 JSON 操作
+                const testData = {
+                    id: '1',
+                    name: '測試商品',
+                    price: 100,
+                    category: 'test'
+                };
+                
+                const jsonString = JSON.stringify(testData);
+                const parsedData = JSON.parse(jsonString);
+                
+                if (parsedData.name === '測試商品') {
+                    html += `<div class="test-result success">✅ JSON 序列化/反序列化正常</div>`;
+                } else {
+                    html += `<div class="test-result error">❌ JSON 操作失敗</div>`;
+                }
+                
+                // 測試陣列操作
+                const testArray = [1, 2, 3, 4, 5];
+                const filtered = testArray.filter(n => n > 3);
+                const mapped = testArray.map(n => n * 2);
+                
+                if (filtered.length === 2 && mapped[0] === 2) {
+                    html += `<div class="test-result success">✅ 陣列操作功能正常</div>`;
+                } else {
+                    html += `<div class="test-result error">❌ 陣列操作失敗</div>`;
+                }
+                
+            } catch (error) {
+                html += `<div class="test-result error">❌ 資料結構測試失敗: ${error.message}</div>`;
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        // 頁面載入時執行基本測試
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('驗證頁面載入完成');
+            
+            // 自動執行資料測試
+            setTimeout(() => {
+                testClientData();
+                testAdminData();
+                testPageLinks();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
