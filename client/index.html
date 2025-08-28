@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線上商店 - 首頁</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>線上商店</h2>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-link" onclick="showSection('home')">首頁</a>
+                <a href="#" class="nav-link" onclick="showSection('products')">商品</a>
+                <a href="#" class="nav-link" onclick="showSection('cart')">購物車</a>
+                <a href="#" class="nav-link" onclick="showSection('orders')">訂單</a>
+            </div>
+            <div class="nav-auth">
+                <div id="auth-buttons">
+                    <button class="btn-secondary" onclick="showLoginModal()">登入</button>
+                    <button class="btn-primary" onclick="showRegisterModal()">註冊</button>
+                </div>
+                <div id="user-info" style="display: none;">
+                    <span id="username"></span>
+                    <button class="btn-secondary" onclick="logout()">登出</button>
+                </div>
+                <div class="cart-icon" onclick="showSection('cart')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cart-count">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <!-- 首頁區域 -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>歡迎來到線上商店</h1>
+                    <p>發現最新時尚商品，享受優質購物體驗</p>
+                    <button class="btn-primary" onclick="showSection('products')">立即購物</button>
+                </div>
+            </div>
+            
+            <div class="featured-products">
+                <h2>精選商品</h2>
+                <div id="featured-products-grid" class="products-grid">
+                    <!-- 精選商品將在這裡動態載入 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 商品區域 -->
+        <section id="products" class="section">
+            <div class="products-header">
+                <h2>所有商品</h2>
+                <div class="filters">
+                    <select id="category-filter">
+                        <option value="">所有分類</option>
+                    </select>
+                    <input type="text" id="search-input" placeholder="搜尋商品...">
+                    <button class="btn-primary" onclick="searchProducts()">搜尋</button>
+                </div>
+            </div>
+            <div id="products-grid" class="products-grid">
+                <!-- 商品將在這裡動態載入 -->
+            </div>
+        </section>
+
+        <!-- 購物車區域 -->
+        <section id="cart" class="section">
+            <h2>購物車</h2>
+            <div id="cart-items">
+                <!-- 購物車商品將在這裡動態載入 -->
+            </div>
+            <div class="cart-summary">
+                <div class="total-amount">
+                    <h3>總計: NT$ <span id="total-amount">0</span></h3>
+                </div>
+                <button class="btn-primary" onclick="checkout()">結帳</button>
+            </div>
+        </section>
+
+        <!-- 訂單區域 -->
+        <section id="orders" class="section">
+            <h2>我的訂單</h2>
+            <div id="orders-list">
+                <!-- 訂單將在這裡動態載入 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 登入模態框 -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('login-modal')">&times;</span>
+            <h2>登入</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">電子郵件:</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">密碼:</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn-primary">登入</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 註冊模態框 -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('register-modal')">&times;</span>
+            <h2>註冊</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-username">使用者名稱:</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">電子郵件:</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">密碼:</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <button type="submit" class="btn-primary">註冊</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 結帳模態框 -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('checkout-modal')">&times;</span>
+            <h2>結帳</h2>
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label for="shipping-name">收件人姓名:</label>
+                    <input type="text" id="shipping-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="shipping-address">收件地址:</label>
+                    <textarea id="shipping-address" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="shipping-phone">聯絡電話:</label>
+                    <input type="tel" id="shipping-phone" required>
+                </div>
+                <div class="order-summary">
+                    <h3>訂單摘要</h3>
+                    <div id="checkout-items"></div>
+                    <div class="total">
+                        <strong>總計: NT$ <span id="checkout-total">0</span></strong>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">確認訂單</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/products.js"></script>
+</body>
+</html>
