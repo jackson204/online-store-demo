@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理後台 - 商品管理</title>
+
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .admin-nav {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-nav a {
+            color: white;
+        }
+
+        .admin-nav a:hover {
+            opacity: 0.8;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .actions button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--background-color);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 管理員導航列 -->
+        <nav class="admin-nav">
+            <div class="container-fluid">
+                <ul>
+                    <li><strong>🔧 管理後台</strong></li>
+                </ul>
+                <ul>
+                    <li><a href="dashboard.html">儀表板</a></li>
+                    <li><a href="products.html" aria-current="page">商品管理</a></li>
+                    <li><a href="orders.html">訂單管理</a></li>
+                    <li><a href="#" @click.prevent="logout">登出 ({{ currentUser?.name }})</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="container">
+            <div class="toolbar">
+                <h1>商品管理</h1>
+                <button @click="openAddModal">➕ 新增商品</button>
+            </div>
+
+            <!-- 商品列表 -->
+            <figure>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">圖片</th>
+                            <th>商品名稱</th>
+                            <th>分類</th>
+                            <th>價格</th>
+                            <th>庫存</th>
+                            <th style="width: 180px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="products.length === 0">
+                            <td colspan="6" style="text-align: center;">暫無商品</td>
+                        </tr>
+                        <tr v-for="product in products" :key="product.id">
+                            <td>
+                                <img :src="product.imageUrl" :alt="product.name" class="product-image">
+                            </td>
+                            <td>
+                                <strong>{{ product.name }}</strong><br>
+                                <small>{{ product.description?.substring(0, 50) }}...</small>
+                            </td>
+                            <td>{{ product.category }}</td>
+                            <td>NT$ {{ product.price.toLocaleString() }}</td>
+                            <td>
+                                <span :style="{ color: product.stock < 10 ? 'red' : 'inherit' }">
+                                    {{ product.stock }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <button class="secondary" @click="openEditModal(product)">編輯</button>
+                                    <button class="contrast" @click="deleteProduct(product.id)">刪除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </figure>
+        </main>
+
+        <!-- 新增/編輯商品 Modal -->
+        <div class="modal" :class="{ active: showModal }" @click.self="closeModal">
+            <div class="modal-content">
+                <h2>{{ isEditMode ? '編輯商品' : '新增商品' }}</h2>
+                
+                <form @submit.prevent="saveProduct">
+                    <label>
+                        商品名稱
+                        <input type="text" v-model="formData.name" required>
+                    </label>
+
+                    <label>
+                        商品描述
+                        <textarea v-model="formData.description" rows="3" required></textarea>
+                    </label>
+
+                    <label>
+                        分類
+                        <select v-model="formData.category" required>
+                            <option value="">請選擇分類</option>
+                            <option value="電子產品">電子產品</option>
+                            <option value="電腦週邊">電腦週邊</option>
+                            <option value="配件">配件</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </label>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <label>
+                            價格 (NT$)
+                            <input type="number" v-model.number="formData.price" min="0" required>
+                        </label>
+
+                        <label>
+                            庫存
+                            <input type="number" v-model.number="formData.stock" min="0" required>
+                        </label>
+                    </div>
+
+                    <label>
+                        圖片網址
+                        <input type="url" v-model="formData.imageUrl" placeholder="https://..." required>
+                    </label>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button type="submit" :disabled="loading">
+                            {{ loading ? '儲存中...' : '儲存' }}
+                        </button>
+                        <button type="button" class="secondary" @click="closeModal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../frontend-client/js/config.js"></script>
+    <script src="../frontend-client/js/mock-api.js"></script>
+    <script src="../frontend-client/js/api.js"></script>
+    <script src="../frontend-client/js/auth.js"></script>
+    <script src="../frontend-client/js/utils.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentUser: null,
+                    products: [],
+                    showModal: false,
+                    isEditMode: false,
+                    loading: false,
+                    formData: {
+                        id: null,
+                        name: '',
+                        description: '',
+                        price: 0,
+                        stock: 0,
+                        imageUrl: '',
+                        category: ''
+                    }
+                };
+            },
+
+            async mounted() {
+                // 檢查管理員權限
+                this.checkAdminAccess();
+                
+                // 取得當前使用者
+                this.currentUser = Auth.getCurrentUser();
+
+                // 載入商品列表
+                await this.loadProducts();
+            },
+
+            methods: {
+                checkAdminAccess() {
+                    if (!Auth.isLoggedIn()) {
+                        alert('請先登入');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    if (!Auth.isAdmin()) {
+                        alert('您不是管理員，無法存取此頁面');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                },
+
+                async loadProducts() {
+                    try {
+                        const response = await api.getProducts();
+                        if (response.success) {
+                            this.products = response.data;
+                        }
+                    } catch (error) {
+                        console.error('載入商品錯誤:', error);
+                        alert('載入商品失敗');
+                    }
+                },
+
+                openAddModal() {
+                    this.isEditMode = false;
+                    this.resetForm();
+                    this.showModal = true;
+                },
+
+                openEditModal(product) {
+                    this.isEditMode = true;
+                    this.formData = { ...product };
+                    this.showModal = true;
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    this.resetForm();
+                },
+
+                resetForm() {
+                    this.formData = {
+                        id: null,
+                        name: '',
+                        description: '',
+                        price: 0,
+                        stock: 0,
+                        imageUrl: '',
+                        category: ''
+                    };
+                },
+
+                async saveProduct() {
+                    try {
+                        this.loading = true;
+
+                        if (this.isEditMode) {
+                            // 編輯商品
+                            const index = window.mockAPI.products.findIndex(p => p.id === this.formData.id);
+                            if (index !== -1) {
+                                window.mockAPI.products[index] = {
+                                    ...this.formData,
+                                    updatedAt: new Date().toISOString()
+                                };
+                                Utils.showToast('商品已更新', 'success');
+                            }
+                        } else {
+                            // 新增商品
+                            const newProduct = {
+                                ...this.formData,
+                                id: window.mockAPI.products.length + 1,
+                                createdAt: new Date().toISOString()
+                            };
+                            window.mockAPI.products.push(newProduct);
+                            Utils.showToast('商品已新增', 'success');
+                        }
+
+                        await this.loadProducts();
+                        this.closeModal();
+                    } catch (error) {
+                        console.error('儲存商品錯誤:', error);
+                        alert('儲存商品失敗');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async deleteProduct(productId) {
+                    if (!confirm('確定要刪除這個商品嗎？')) {
+                        return;
+                    }
+
+                    try {
+                        const index = window.mockAPI.products.findIndex(p => p.id === productId);
+                        if (index !== -1) {
+                            window.mockAPI.products.splice(index, 1);
+                            Utils.showToast('商品已刪除', 'success');
+                            await this.loadProducts();
+                        }
+                    } catch (error) {
+                        console.error('刪除商品錯誤:', error);
+                        alert('刪除商品失敗');
+                    }
+                },
+
+                logout() {
+                    if (confirm('確定要登出嗎？')) {
+                        Auth.logout();
+                        window.location.href = 'index.html';
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

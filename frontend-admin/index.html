@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理後台 - 管理員登入</title>
+
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .login-container {
+            max-width: 450px;
+            margin: 100px auto;
+            padding: 2rem;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <main class="container">
+            <article class="login-container">
+                <div style="text-align: center;">
+                    <span class="admin-badge">🔐 管理員專區</span>
+                    <h1>管理後台登入</h1>
+                    <p>請使用管理員帳號登入</p>
+                </div>
+
+                <form @submit.prevent="handleLogin">
+                    <label>
+                        Email
+                        <input
+                            type="email"
+                            v-model="loginForm.email"
+                            placeholder="請輸入管理員 Email"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        密碼
+                        <input
+                            type="password"
+                            v-model="loginForm.password"
+                            placeholder="請輸入密碼"
+                            required
+                        >
+                    </label>
+
+                    <button type="submit" :disabled="loading">
+                        {{ loading ? '登入中...' : '登入' }}
+                    </button>
+
+                    <small>
+                        <strong>測試帳號：</strong><br>
+                        管理員: admin@example.com<br>
+                        密碼: 任意（Mock模式）
+                    </small>
+                </form>
+            </article>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../frontend-client/js/config.js"></script>
+    <script src="../frontend-client/js/mock-api.js"></script>
+    <script src="../frontend-client/js/api.js"></script>
+    <script src="../frontend-client/js/auth.js"></script>
+    <script src="../frontend-client/js/utils.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    loginForm: {
+                        email: '',
+                        password: ''
+                    }
+                };
+            },
+
+            mounted() {
+                // 如果已登入且是管理員，重導向到儀表板
+                if (Auth.isLoggedIn() && Auth.isAdmin()) {
+                    window.location.href = 'dashboard.html';
+                }
+                // 如果已登入但不是管理員，顯示錯誤
+                else if (Auth.isLoggedIn() && !Auth.isAdmin()) {
+                    alert('您不是管理員，無法存取此頁面');
+                    Auth.logout();
+                }
+            },
+
+            methods: {
+                async handleLogin() {
+                    try {
+                        this.loading = true;
+                        const response = await api.login(this.loginForm);
+
+                        if (response.success) {
+                            // 檢查是否為管理員
+                            if (!response.data.user.isAdmin) {
+                                alert('您不是管理員，無法登入後台！');
+                                return;
+                            }
+
+                            // 儲存登入資訊
+                            Auth.saveLoginData(response.data.token, response.data.user);
+
+                            Utils.showToast('登入成功！', 'success');
+
+                            // 延遲跳轉
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 1000);
+                        } else {
+                            alert('登入失敗: ' + response.message);
+                        }
+                    } catch (error) {
+                        console.error('登入錯誤:', error);
+                        alert('登入時發生錯誤');
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

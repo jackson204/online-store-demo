@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理後台 - 訂單管理</title>
+
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .admin-nav {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-nav a {
+            color: white;
+        }
+
+        .admin-nav a:hover {
+            opacity: 0.8;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #ffc107; color: #000; }
+        .status-processing { background: #17a2b8; color: #fff; }
+        .status-shipped { background: #007bff; color: #fff; }
+        .status-delivered { background: #28a745; color: #fff; }
+        .status-cancelled { background: #dc3545; color: #fff; }
+
+        .actions button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            margin: 0 0.25rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--background-color);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .order-items {
+            margin: 1rem 0;
+        }
+
+        .order-items table {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 管理員導航列 -->
+        <nav class="admin-nav">
+            <div class="container-fluid">
+                <ul>
+                    <li><strong>🔧 管理後台</strong></li>
+                </ul>
+                <ul>
+                    <li><a href="dashboard.html">儀表板</a></li>
+                    <li><a href="products.html">商品管理</a></li>
+                    <li><a href="orders.html" aria-current="page">訂單管理</a></li>
+                    <li><a href="#" @click.prevent="logout">登出 ({{ currentUser?.name }})</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="container">
+            <div class="toolbar">
+                <h1>訂單管理</h1>
+                <div>
+                    <label>
+                        篩選狀態：
+                        <select v-model="filterStatus" style="display: inline-block; width: auto;">
+                            <option value="">全部</option>
+                            <option value="Pending">待處理</option>
+                            <option value="Processing">處理中</option>
+                            <option value="Shipped">已出貨</option>
+                            <option value="Delivered">已送達</option>
+                            <option value="Cancelled">已取消</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 訂單列表 -->
+            <figure>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>訂單編號</th>
+                            <th>客戶名稱</th>
+                            <th>聯絡電話</th>
+                            <th>金額</th>
+                            <th>狀態</th>
+                            <th>建立時間</th>
+                            <th style="width: 180px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="filteredOrders.length === 0">
+                            <td colspan="7" style="text-align: center;">暫無訂單</td>
+                        </tr>
+                        <tr v-for="order in filteredOrders" :key="order.id">
+                            <td><strong>#{{ order.id }}</strong></td>
+                            <td>{{ order.recipientName }}</td>
+                            <td>{{ order.recipientPhone }}</td>
+                            <td>NT$ {{ order.totalAmount.toLocaleString() }}</td>
+                            <td>
+                                <span class="status-badge" :class="getStatusClass(order.status)">
+                                    {{ getStatusText(order.status) }}
+                                </span>
+                            </td>
+                            <td>{{ formatDate(order.createdAt) }}</td>
+                            <td>
+                                <div class="actions">
+                                    <button class="secondary" @click="viewOrderDetail(order)">查看</button>
+                                    <button @click="updateOrderStatus(order)">更新</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </figure>
+        </main>
+
+        <!-- 訂單詳情 Modal -->
+        <div class="modal" :class="{ active: showDetailModal }" @click.self="closeDetailModal">
+            <div class="modal-content" v-if="selectedOrder">
+                <h2>訂單詳情 #{{ selectedOrder.id }}</h2>
+                
+                <h3>客戶資訊</h3>
+                <ul>
+                    <li><strong>收件人：</strong>{{ selectedOrder.recipientName }}</li>
+                    <li><strong>電話：</strong>{{ selectedOrder.recipientPhone }}</li>
+                    <li><strong>地址：</strong>{{ selectedOrder.shippingAddress }}</li>
+                </ul>
+
+                <h3>訂單項目</h3>
+                <div class="order-items">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>商品名稱</th>
+                                <th>單價</th>
+                                <th>數量</th>
+                                <th>小計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in selectedOrder.items" :key="index">
+                                <td>{{ item.productName }}</td>
+                                <td>NT$ {{ item.unitPrice.toLocaleString() }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>NT$ {{ (item.unitPrice * item.quantity).toLocaleString() }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right;"><strong>總計：</strong></td>
+                                <td><strong>NT$ {{ selectedOrder.totalAmount.toLocaleString() }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <h3>訂單狀態</h3>
+                <p>
+                    目前狀態：
+                    <span class="status-badge" :class="getStatusClass(selectedOrder.status)">
+                        {{ getStatusText(selectedOrder.status) }}
+                    </span>
+                </p>
+                <p><small>建立時間：{{ formatDate(selectedOrder.createdAt) }}</small></p>
+
+                <button class="secondary" @click="closeDetailModal">關閉</button>
+            </div>
+        </div>
+
+        <!-- 更新狀態 Modal -->
+        <div class="modal" :class="{ active: showUpdateModal }" @click.self="closeUpdateModal">
+            <div class="modal-content" v-if="selectedOrder">
+                <h2>更新訂單狀態 #{{ selectedOrder.id }}</h2>
+                
+                <label>
+                    選擇新狀態
+                    <select v-model="newStatus">
+                        <option value="Pending">待處理</option>
+                        <option value="Processing">處理中</option>
+                        <option value="Shipped">已出貨</option>
+                        <option value="Delivered">已送達</option>
+                        <option value="Cancelled">已取消</option>
+                    </select>
+                </label>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button @click="confirmUpdateStatus" :disabled="loading">
+                        {{ loading ? '更新中...' : '確認更新' }}
+                    </button>
+                    <button class="secondary" @click="closeUpdateModal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../frontend-client/js/config.js"></script>
+    <script src="../frontend-client/js/mock-api.js"></script>
+    <script src="../frontend-client/js/api.js"></script>
+    <script src="../frontend-client/js/auth.js"></script>
+    <script src="../frontend-client/js/utils.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentUser: null,
+                    orders: [],
+                    filterStatus: '',
+                    showDetailModal: false,
+                    showUpdateModal: false,
+                    selectedOrder: null,
+                    newStatus: '',
+                    loading: false
+                };
+            },
+
+            computed: {
+                filteredOrders() {
+                    if (!this.filterStatus) {
+                        return this.orders;
+                    }
+                    return this.orders.filter(order => order.status === this.filterStatus);
+                }
+            },
+
+            async mounted() {
+                // 檢查管理員權限
+                this.checkAdminAccess();
+                
+                // 取得當前使用者
+                this.currentUser = Auth.getCurrentUser();
+
+                // 載入訂單列表
+                await this.loadOrders();
+            },
+
+            methods: {
+                checkAdminAccess() {
+                    if (!Auth.isLoggedIn()) {
+                        alert('請先登入');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    if (!Auth.isAdmin()) {
+                        alert('您不是管理員，無法存取此頁面');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                },
+
+                async loadOrders() {
+                    try {
+                        // 取得所有訂單（直接從 mock 資料讀取）
+                        this.orders = window.mockAPI.orders.sort((a, b) => 
+                            new Date(b.createdAt) - new Date(a.createdAt)
+                        );
+                    } catch (error) {
+                        console.error('載入訂單錯誤:', error);
+                        alert('載入訂單失敗');
+                    }
+                },
+
+                viewOrderDetail(order) {
+                    this.selectedOrder = order;
+                    this.showDetailModal = true;
+                },
+
+                closeDetailModal() {
+                    this.showDetailModal = false;
+                    this.selectedOrder = null;
+                },
+
+                updateOrderStatus(order) {
+                    this.selectedOrder = order;
+                    this.newStatus = order.status;
+                    this.showUpdateModal = true;
+                },
+
+                closeUpdateModal() {
+                    this.showUpdateModal = false;
+                    this.selectedOrder = null;
+                    this.newStatus = '';
+                },
+
+                async confirmUpdateStatus() {
+                    try {
+                        this.loading = true;
+
+                        // 更新訂單狀態
+                        const orderIndex = window.mockAPI.orders.findIndex(o => o.id === this.selectedOrder.id);
+                        if (orderIndex !== -1) {
+                            window.mockAPI.orders[orderIndex].status = this.newStatus;
+                            window.mockAPI.orders[orderIndex].updatedAt = new Date().toISOString();
+                        }
+
+                        Utils.showToast('訂單狀態已更新', 'success');
+                        await this.loadOrders();
+                        this.closeUpdateModal();
+                    } catch (error) {
+                        console.error('更新狀態錯誤:', error);
+                        alert('更新狀態失敗');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleString('zh-TW', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                getStatusText(status) {
+                    const statusMap = {
+                        'Pending': '待處理',
+                        'Processing': '處理中',
+                        'Shipped': '已出貨',
+                        'Delivered': '已送達',
+                        'Cancelled': '已取消'
+                    };
+                    return statusMap[status] || status;
+                },
+
+                getStatusClass(status) {
+                    return `status-${status.toLowerCase()}`;
+                },
+
+                logout() {
+                    if (confirm('確定要登出嗎？')) {
+                        Auth.logout();
+                        window.location.href = 'index.html';
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

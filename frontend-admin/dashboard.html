@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理後台 - 儀表板</title>
+
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .admin-nav {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-nav a {
+            color: white;
+        }
+
+        .admin-nav a:hover {
+            opacity: 0.8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-background-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--muted-color);
+            font-size: 0.9rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 管理員導航列 -->
+        <nav class="admin-nav">
+            <div class="container-fluid">
+                <ul>
+                    <li><strong>🔧 管理後台</strong></li>
+                </ul>
+                <ul>
+                    <li><a href="dashboard.html" aria-current="page">儀表板</a></li>
+                    <li><a href="products.html">商品管理</a></li>
+                    <li><a href="orders.html">訂單管理</a></li>
+                    <li><a href="#" @click.prevent="logout">登出 ({{ currentUser?.name }})</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="container">
+            <h1>儀表板</h1>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-label">📦 商品總數</div>
+                    <div class="stat-number">{{ stats.totalProducts }}</div>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-label">📋 訂單總數</div>
+                    <div class="stat-number">{{ stats.totalOrders }}</div>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-label">⏳ 待處理訂單</div>
+                    <div class="stat-number">{{ stats.pendingOrders }}</div>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-label">💰 總銷售額</div>
+                    <div class="stat-number">{{ formatCurrency(stats.totalRevenue) }}</div>
+                </article>
+            </div>
+
+            <!-- 快速操作 -->
+            <h2>快速操作</h2>
+            <div class="quick-actions">
+                <article>
+                    <a href="products.html" role="button">📦 管理商品</a>
+                </article>
+                <article>
+                    <a href="orders.html" role="button" class="secondary">📋 查看訂單</a>
+                </article>
+            </div>
+
+            <!-- 最近訂單 -->
+            <h2>最近訂單</h2>
+            <figure>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>訂單編號</th>
+                            <th>客戶名稱</th>
+                            <th>金額</th>
+                            <th>狀態</th>
+                            <th>建立時間</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="recentOrders.length === 0">
+                            <td colspan="5" style="text-align: center;">暫無訂單</td>
+                        </tr>
+                        <tr v-for="order in recentOrders" :key="order.id">
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.recipientName }}</td>
+                            <td>{{ formatCurrency(order.totalAmount) }}</td>
+                            <td>
+                                <span :class="getStatusClass(order.status)">
+                                    {{ getStatusText(order.status) }}
+                                </span>
+                            </td>
+                            <td>{{ formatDate(order.createdAt) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </figure>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../frontend-client/js/config.js"></script>
+    <script src="../frontend-client/js/mock-api.js"></script>
+    <script src="../frontend-client/js/api.js"></script>
+    <script src="../frontend-client/js/auth.js"></script>
+    <script src="../frontend-client/js/utils.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentUser: null,
+                    stats: {
+                        totalProducts: 0,
+                        totalOrders: 0,
+                        pendingOrders: 0,
+                        totalRevenue: 0
+                    },
+                    recentOrders: []
+                };
+            },
+
+            async mounted() {
+                // 檢查管理員權限
+                this.checkAdminAccess();
+                
+                // 取得當前使用者
+                this.currentUser = Auth.getCurrentUser();
+
+                // 載入資料
+                await this.loadDashboardData();
+            },
+
+            methods: {
+                checkAdminAccess() {
+                    if (!Auth.isLoggedIn()) {
+                        alert('請先登入');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    if (!Auth.isAdmin()) {
+                        alert('您不是管理員，無法存取此頁面');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                },
+
+                async loadDashboardData() {
+                    try {
+                        // 取得商品資料
+                        const productsRes = await api.getProducts();
+                        if (productsRes.success) {
+                            this.stats.totalProducts = productsRes.data.length;
+                        }
+
+                        // 取得所有訂單（這裡用 mock 資料）
+                        const allOrders = window.mockAPI.orders;
+                        this.stats.totalOrders = allOrders.length;
+                        this.stats.pendingOrders = allOrders.filter(o => o.status === 'Pending').length;
+                        this.stats.totalRevenue = allOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+                        // 取得最近 5 筆訂單
+                        this.recentOrders = allOrders
+                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                            .slice(0, 5);
+
+                    } catch (error) {
+                        console.error('載入資料錯誤:', error);
+                    }
+                },
+
+                formatCurrency(amount) {
+                    return `NT$ ${amount.toLocaleString()}`;
+                },
+
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleString('zh-TW', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                getStatusText(status) {
+                    const statusMap = {
+                        'Pending': '待處理',
+                        'Processing': '處理中',
+                        'Shipped': '已出貨',
+                        'Delivered': '已送達',
+                        'Cancelled': '已取消'
+                    };
+                    return statusMap[status] || status;
+                },
+
+                getStatusClass(status) {
+                    const classMap = {
+                        'Pending': 'badge-warning',
+                        'Processing': 'badge-info',
+                        'Shipped': 'badge-primary',
+                        'Delivered': 'badge-success',
+                        'Cancelled': 'badge-danger'
+                    };
+                    return classMap[status] || '';
+                },
+
+                logout() {
+                    if (confirm('確定要登出嗎？')) {
+                        Auth.logout();
+                        window.location.href = 'index.html';
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

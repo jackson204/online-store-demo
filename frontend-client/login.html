@@ -64,8 +64,6 @@
                 
                 <!-- 登入表單 -->
                 <form v-if="activeTab === 'login'" @submit.prevent="handleLogin">
-                    <h2>會員登入</h2>
-                    
                     <label>
                         Email
                         <input 
@@ -92,16 +90,13 @@
                     
                     <small>
                         <strong>測試帳號：</strong><br>
-                        一般使用者: user@example.com<br>
-                        管理員: admin@example.com<br>
+                        Email: user@example.com<br>
                         密碼: 任意（Mock模式）
                     </small>
                 </form>
                 
                 <!-- 註冊表單 -->
                 <form v-if="activeTab === 'register'" @submit.prevent="handleRegister">
-                    <h2>會員註冊</h2>
-                    
                     <label>
                         姓名
                         <input 
