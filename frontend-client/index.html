@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子商城 - 商品列表</title>
+    
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .product-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 1rem;
+        }
+        
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-price {
+            color: #d32f2f;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .product-stock {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 導航列 -->
+        <nav class="container-fluid">
+            <ul>
+                <li><strong>🛒 電子商城</strong></li>
+            </ul>
+            <ul>
+                <li><a href="index.html">商品列表</a></li>
+                <li><a href="cart.html">購物車 <span v-if="cartCount > 0">({{ cartCount }})</span></a></li>
+                <li v-if="isLoggedIn"><a href="orders.html">訂單查詢</a></li>
+                <li v-if="isLoggedIn" class="nav-user">
+                    <span>👤 {{ user.name }}</span>
+                    <a href="#" @click.prevent="logout">登出</a>
+                </li>
+                <li v-if="!isLoggedIn"><a href="login.html">登入</a></li>
+            </ul>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="container">
+            <h1>商品列表</h1>
+            
+            <!-- Loading 狀態 -->
+            <div v-if="loading" aria-busy="true">載入中...</div>
+            
+            <!-- 商品網格 -->
+            <div v-else class="product-grid">
+                <article v-for="product in products" :key="product.id" class="product-card">
+                    <img :src="product.imageUrl" :alt="product.name" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name">{{ product.name }}</div>
+                        <p class="product-description">{{ product.description }}</p>
+                        <div class="product-price">{{ formatPrice(product.price) }}</div>
+                        <div class="product-stock">庫存: {{ product.stock }}</div>
+                        <button 
+                            @click="addToCart(product.id)" 
+                            :disabled="product.stock === 0"
+                        >
+                            {{ product.stock > 0 ? '加入購物車' : '已售完' }}
+                        </button>
+                    </div>
+                </article>
+            </div>
+            
+            <!-- 無商品 -->
+            <div v-if="!loading && products.length === 0">
+                <p>目前沒有商品</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/mock-api.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    products: [],
+                    loading: true,
+                    isLoggedIn: false,
+                    user: null,
+                    cartCount: 0
+                };
+            },
+            
+            async mounted() {
+                this.checkLoginStatus();
+                await this.loadProducts();
+            },
+            
+            methods: {
+                checkLoginStatus() {
+                    this.isLoggedIn = Auth.isLoggedIn();
+                    if (this.isLoggedIn) {
+                        this.user = Auth.getCurrentUser();
+                    }
+                },
+                
+                async loadProducts() {
+                    try {
+                        this.loading = true;
+                        const response = await api.getProducts();
+                        
+                        if (response.success) {
+                            this.products = response.data;
+                        } else {
+                            alert('載入商品失敗: ' + response.message);
+                        }
+                    } catch (error) {
+                        console.error('載入商品錯誤:', error);
+                        alert('載入商品時發生錯誤');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async addToCart(productId) {
+                    // 檢查是否登入
+                    if (!this.isLoggedIn) {
+                        alert('請先登入才能加入購物車');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    try {
+                        const response = await api.addToCart(productId, 1);
+                        
+                        if (response.success) {
+                            Utils.showToast('已加入購物車！', 'success');
+                            this.cartCount++;
+                        } else {
+                            alert('加入購物車失敗: ' + response.message);
+                        }
+                    } catch (error) {
+                        console.error('加入購物車錯誤:', error);
+                        alert('加入購物車時發生錯誤');
+                    }
+                },
+                
+                formatPrice(price) {
+                    return Utils.formatPrice(price);
+                },
+                
+                logout() {
+                    Auth.logout();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

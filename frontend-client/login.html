@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子商城 - 登入/註冊</title>
+    
+    <!-- Pico.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        .auth-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 2rem;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-buttons button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 導航列 -->
+        <nav class="container-fluid">
+            <ul>
+                <li><strong>🛒 電子商城</strong></li>
+            </ul>
+            <ul>
+                <li><a href="index.html">商品列表</a></li>
+            </ul>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="container">
+            <article class="auth-container">
+                <h1>會員中心</h1>
+                
+                <!-- Tab 切換 -->
+                <div class="tab-buttons">
+                    <button 
+                        @click="activeTab = 'login'" 
+                        :class="{ 'contrast': activeTab === 'login' }"
+                    >
+                        登入
+                    </button>
+                    <button 
+                        @click="activeTab = 'register'" 
+                        :class="{ 'contrast': activeTab === 'register' }"
+                    >
+                        註冊
+                    </button>
+                </div>
+                
+                <!-- 登入表單 -->
+                <form v-if="activeTab === 'login'" @submit.prevent="handleLogin">
+                    <h2>會員登入</h2>
+                    
+                    <label>
+                        Email
+                        <input 
+                            type="email" 
+                            v-model="loginForm.email" 
+                            placeholder="請輸入 Email"
+                            required
+                        >
+                    </label>
+                    
+                    <label>
+                        密碼
+                        <input 
+                            type="password" 
+                            v-model="loginForm.password" 
+                            placeholder="請輸入密碼"
+                            required
+                        >
+                    </label>
+                    
+                    <button type="submit" :disabled="loading">
+                        {{ loading ? '登入中...' : '登入' }}
+                    </button>
+                    
+                    <small>
+                        <strong>測試帳號：</strong><br>
+                        一般使用者: user@example.com<br>
+                        管理員: admin@example.com<br>
+                        密碼: 任意（Mock模式）
+                    </small>
+                </form>
+                
+                <!-- 註冊表單 -->
+                <form v-if="activeTab === 'register'" @submit.prevent="handleRegister">
+                    <h2>會員註冊</h2>
+                    
+                    <label>
+                        姓名
+                        <input 
+                            type="text" 
+                            v-model="registerForm.name" 
+                            placeholder="請輸入姓名"
+                            required
+                        >
+                    </label>
+                    
+                    <label>
+                        Email
+                        <input 
+                            type="email" 
+                            v-model="registerForm.email" 
+                            placeholder="請輸入 Email"
+                            required
+                        >
+                    </label>
+                    
+                    <label>
+                        密碼
+                        <input 
+                            type="password" 
+                            v-model="registerForm.password" 
+                            placeholder="請輸入密碼（至少8字元）"
+                            required
+                            minlength="8"
+                        >
+                    </label>
+                    
+                    <button type="submit" :disabled="loading">
+                        {{ loading ? '註冊中...' : '註冊' }}
+                    </button>
+                </form>
+            </article>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/mock-api.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'login',
+                    loading: false,
+                    loginForm: {
+                        email: '',
+                        password: ''
+                    },
+                    registerForm: {
+                        name: '',
+                        email: '',
+                        password: ''
+                    }
+                };
+            },
+            
+            mounted() {
+                // 如果已登入，重導向到首頁
+                if (Auth.isLoggedIn()) {
+                    window.location.href = 'index.html';
+                }
+            },
+            
+            methods: {
+                async handleLogin() {
+                    try {
+                        this.loading = true;
+                        const response = await api.login(this.loginForm);
+                        
+                        if (response.success) {
+                            // 儲存登入資訊
+                            Auth.saveLoginData(response.data.token, response.data.user);
+                            
+                            Utils.showToast('登入成功！', 'success');
+                            
+                            // 延遲跳轉
+                            setTimeout(() => {
+                                window.location.href = 'index.html';
+                            }, 1000);
+                        } else {
+                            alert('登入失敗: ' + response.message);
+                        }
+                    } catch (error) {
+                        console.error('登入錯誤:', error);
+                        alert('登入時發生錯誤');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async handleRegister() {
+                    try {
+                        this.loading = true;
+                        const response = await api.register(this.registerForm);
+                        
+                        if (response.success) {
+                            Utils.showToast('註冊成功！請登入', 'success');
+                            
+                            // 切換到登入頁籤
+                            this.activeTab = 'login';
+                            this.loginForm.email = this.registerForm.email;
+                            
+                            // 清空註冊表單
+                            this.registerForm = {
+                                name: '',
+                                email: '',
+                                password: ''
+                            };
+                        } else {
+                            alert('註冊失敗: ' + response.message);
+                        }
+                    } catch (error) {
+                        console.error('註冊錯誤:', error);
+                        alert('註冊時發生錯誤');
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
